@@ -1,3 +1,10 @@
+'''
+Filename: InnerLoopMismatches.py
+Author: Michael Hathaway
+
+Description: Module imported by the StructureType module that is used for inner loop energy calculations.
+Data Source: https://rna.urmc.rochester.edu/NNDB/turner04/internal-parameters.html
+'''
 
 InnerLoopMismatches_2x3 = { #R = purine, Y = pyrimidine
     #(('R', Y), ('A', 'G'))

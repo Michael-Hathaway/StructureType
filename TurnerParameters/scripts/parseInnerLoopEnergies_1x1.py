@@ -30,12 +30,9 @@ def parseInnerLoopEnergies(filename):
 	contents = contents.split('\n') #split blocks by new line
 
 	blocks = []
-	blocks.append(contents[0:14])
-	blocks.append(contents[15:29])
-	blocks.append(contents[30:44])
-	blocks.append(contents[45:59])
-	blocks.append(contents[60:74])
-	blocks.append(contents[75:89])
+	for i in range(len(contents)): #break file into list of seperate parameter blocks
+		if contents[i].count('Y') == 6 and contents[i+1].count('-') > 20:
+			blocks.append(contents[i:i+14])
 
 	bases = ['A', 'C', 'G', 'U'] #base label
 
@@ -53,11 +50,11 @@ def parseInnerLoopEnergies(filename):
 			lineContents = values[i].split(' ') #split line of values into a list of values
 			lineContents = list(filter(lambda arg: (arg == '') == False, lineContents)) #filter out empty strings
 			counter = 0
-		
+
 			for j in range(len(lineContents)): #iterate through the list of values
 				# bases[i] will give the value of x
 				# j % 4 will gove value of y
-				
+
 				energyDict[labels[counter], labels[counter+1], bases[i], bases[j%4]] = float(lineContents[j])
 
 
@@ -81,7 +78,7 @@ Parameters:
 Return Type:
 '''
 def parseArgs():
-	parser = argparse.ArgumentParser(description="Turner Parameters Parser for 1x1 Inner Loop Energies.")	
+	parser = argparse.ArgumentParser(description="Turner Parameters Parser for 1x1 Inner Loop Energies.")
 	parser.add_argument('Input_File', help="Specify file to be parsed.", type=str)
 	parser.add_argument('Dictionary_Name', help="specify name of the dictionary and file to write dictionary to.", type=str)
 
@@ -93,5 +90,3 @@ if __name__ == '__main__':
 	args = parseArgs()
 	d = parseInnerLoopEnergies(args[0])
 	writeToFile(d, args[1])
-
-

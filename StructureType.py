@@ -119,12 +119,15 @@ class StructureType:
 			print('Must provide a valid structure type file.')
 			return None
 
+		#try to open the provided file + error handling
 		try:
 			f = open(filename, 'r')
-		except:
-			print('An Error ccurred and the file could not be opened.')
+		except OSError:
+			print('An error ocurred when trying to access the file. Check to make sure that the file exists and that the correct filepath was provided.')
 			return None
-
+		except:
+			print('Something unexpected ocurred when accessing the file')
+			return None
 
 		lineCounter = 1 #using counter to identify lines that do not have label but are always in the same position
 		for line in f:
@@ -225,7 +228,6 @@ class StructureType:
 				break
 		part1_start = int(part1_start)
 
-
 		#get stop of first segment
 		part1_stop = ''
 		for char in reversed(stemData[1]):
@@ -235,13 +237,11 @@ class StructureType:
 				break
 		part1_stop = int(part1_stop[::-1])
 
-
 		#get sequence for first segment
 		part1_seq = ''
 		for char in stemData[2]:
 			if char.isalpha():
 				part1_seq += char
-
 
 		#get start of second segment
 		part2_start = ''
@@ -252,7 +252,6 @@ class StructureType:
 				break
 		part2_start = int(part2_start)
 
-
 		#get stop of second segment
 		part2_stop = ''
 		for char in reversed(stemData[3]):
@@ -262,13 +261,11 @@ class StructureType:
 				break
 		part2_stop = int(part2_stop[::-1])
 
-
 		#get sequence for second segment
 		part2_seq = ''
 		for char in stemData[4]:
 			if char.isalpha():
 				part2_seq += char
-
 
 		#add data to the stems dictionary
 		newStem = Stem(stemLabel, part1_seq, part2_seq, (part1_start, part1_stop), (part2_start, part2_stop))
@@ -1772,10 +1769,10 @@ self._closing_index -- (int, int) -- tuple containing two integers. The first in
 self._pk -- Int -- ???
 
 
-				  C
-				A   G
-			  G       A
-			   C     G
+                  C
+                A   G
+              G       A
+               C     G
 				A - U <- _Closing Pair = ('A', 'U')
 				C - G
 				G - C
@@ -1857,13 +1854,13 @@ self._pk -- int -- ???
 
 
 
-					C
-			5'   AGC UAG   3'
-				 ||| |||
-			3'	 UCG-AUC   5'
-					 ^ 3' closing pair = ('U', 'A')
-				   ^
-				   5' closing pair = ('C', 'G')
+                    C
+            5'   AGC UAG   3'
+                 ||| |||
+            3'   UCG-AUC   5'
+                     ^ 3' closing pair = ('U', 'A')
+                   ^
+                    5' closing pair = ('C', 'G')
 
 
 '''
