@@ -1,18 +1,20 @@
 '''
 Filename: parseInnerLoopEnergies_1x1.py
-Description: script to parse the energy parameters for 1x1 internal loops from the turner parameter text file
 Author: Michael Hathaway
-Date: 11/29/2019
+
+Description: script to parse the energy parameters for 1x1 internal loops from the turner parameter text file
+
+Usage: python parseInnerLoopEnergies_1x1.py <input filename> <output file name without .py ending>
 '''
 
 import sys
 import argparse
 
 '''
-Function:
-Description:
-Parameters:
-Return Type:
+Function: parseInnerLoopEnergies(filename)
+Description: Function parse the energy parameters for 1x1 internal loops from the turner parameter text file
+Parameters: (filename) -- string -- name of the file to be parsed
+Return Type: dictionary
 '''
 def parseInnerLoopEnergies(filename):
 	try:
@@ -57,25 +59,26 @@ def parseInnerLoopEnergies(filename):
 
 				energyDict[labels[counter], labels[counter+1], bases[i], bases[j%4]] = float(lineContents[j])
 
-
-
 	return energyDict
 
 '''
-Function:
-Description:
-Parameters:
-Return Type:
+Function: writeToFile(dictionary, outputName)
+Description: Function to write the parsed file contents to python file
+Parameters: (dictionary) - the dictionary to be written to the python file
+			(outputName) - Name of the output file without the .py ending
+Return Type: None
 '''
 def writeToFile(dictionary, outputName):
 	with open(f'{outputName}.py', 'w') as f:
 		f.write(f'{outputName} = {dictionary}')
 
+
+
 '''
-Function:
-Description:
-Parameters:
-Return Type:
+Function: parseArgs()
+Description: Function to handle command line arguments
+parameters: None
+Return Type: tuple containing the input file name and the output file name
 '''
 def parseArgs():
 	parser = argparse.ArgumentParser(description="Turner Parameters Parser for 1x1 Inner Loop Energies.")
@@ -86,6 +89,8 @@ def parseArgs():
 	return (args.Input_File, args.Dictionary_Name)
 
 
+
+## Main function ##
 if __name__ == '__main__':
 	args = parseArgs()
 	d = parseInnerLoopEnergies(args[0])

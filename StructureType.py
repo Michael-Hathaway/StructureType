@@ -1773,10 +1773,10 @@ self._pk -- Int -- ???
                 A   G
               G       A
                C     G
-				A - U <- _Closing Pair = ('A', 'U')
-				C - G
-				G - C
-				5'  3'
+                A - U <- _Closing Pair = ('A', 'U')
+                C - G
+                G - C
+                5'  3'
 
 
 '''

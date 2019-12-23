@@ -14,36 +14,44 @@ python3 parseWatsonCrickTurnerParameters.py <data text file> <output file name w
 '''
 
 import argparse
+import sys
 
 '''
 Function: parseTurnerParametersStacking(filename)
-Description:
+Description: Function splits file contents into 4 blocks that contain the stacking energy data
 parameters: (filename) -- string -- name of the file to be parsed
 Return Type: Dictionary representing the file information
 '''
 def parseTurnerParametersStacking(filename):
-	with open(filename, 'r') as f:
-		#skip header and start at line 18
-		for i in range(18):
-			next(f)
+	try: #try to open the provided file
+		f = open(filename, 'r')
+	except: #error handling
+		print(f'An error occurred when trying to acess the file: {filename}')
+		sys.exit()
 
-		text = f.read()
-		rows = []
-		for line in text.split('\n'): #break text into lines
-			rows.append(line.rstrip('\r\n').lstrip()) #add lines after stripping extra characters and spaces
+	#skip header and start at line 18
+	for i in range(18):
+		next(f)
 
-		blocks = []
-		for i in range(len(rows)): #break file into list of seperate parameter blocks
-			if rows[i].count('Y') == 4 and rows[i+1].count('-') > 20:
-				blocks.append([line.split() for  line in (rows[i+5:i+7] + rows[i+8:i+12])]) #only get labels and values
+	#read the rest of the file contents
+	text = f.read()
+	rows = []
+	for line in text.split('\n'): #break text into lines
+		rows.append(line.rstrip('\r\n').lstrip()) #add lines after stripping extra characters and spaces
 
-		return _parseBlocks(blocks)
+	blocks = []
+	for i in range(len(rows)): #break file into list of seperate parameter blocks
+		if rows[i].count('Y') == 4 and rows[i+1].count('-') > 20:
+			blocks.append([line.split() for  line in (rows[i+5:i+7] + rows[i+8:i+12])]) #only get labels and values
+
+	return _parseBlocks(blocks)
+
 
 '''
-Function:
-Description:
-parameters:
-Return Type:
+Function: _parseBlocks(blocks)
+Description: Function sorts blocks produced in the parseTurnerParametersStacking() function into a dictionary.
+parameters: (blocks) -- list -- list of stacking energy data produced by parseTurnerParametersStacking() function
+Return Type: Dictionary
 '''
 def _parseBlocks(blocks):
 	stackDict = {}
@@ -73,20 +81,21 @@ def _parseBlocks(blocks):
 	return stackDict
 
 '''
-Function:
-Description:
-parameters:
-Return Type:
+Function: writeToPythonFile(stackDict, dictName)
+Description: Function creates a new python file and writes the stacking energy dictionary to it.
+parameters: (stackDict) - dictionary contents produced by the parseTurnerParametersStacking() function
+			(dictName) - name of the dictionary and the file to be produced
+Return Type: None
 '''
 def writeToPythonFile(stackDict, dictName):
 	with open(f'{dictName}.py', 'w') as f:
 		f.write(f'{dictName} = {stackDict}')
 
 '''
-Function:
-Description:
-parameters:
-Return Type:
+Function: parseArgs()
+Description: Function to handle command line arguments
+parameters: None
+Return Type: tuple containing the input file name and the output file name
 '''
 def parseArgs():
 	parser = argparse.ArgumentParser(description="Turner Parameters Parser for Watson Crick Stacking values.")
