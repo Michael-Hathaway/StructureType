@@ -17,12 +17,15 @@ from TurnerParameters.parameters.StackingEnergies import StackingEnergies
 from TurnerParameters.parameters.InnerLoop_1x1_Energies import InnerLoop_1x1_Energies
 from TurnerParameters.parameters.InnerLoop_1x2_Energies import InnerLoop_1x2_Energies
 from TurnerParameters.parameters.InnerLoop_2x2_Energies import InnerLoop_2x2_Energies
+from TurnerParameters.parameters.InnerLoopMismatches import InnerLoopMismatches_2x3
 
 ## Other Free Energy Parameter Constants ##
-# Will add other constant values used for energy calculations in this section
-# so that the value will be easier to update in the future if necessary
-
 INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value
+STEM_SYMMETRY_PENALTY = 0.43
+STEM_AU_END_PENALTY = 0.45
+INNER_LOOP_ASYMMETRY_PENALTY = 0.6
+SPECIAL_C_BULGE = -0.9
+BULGE_AU_END_PENALTY = 0.45
 
 '''
 ## About the structureTypeObject ##
@@ -31,7 +34,7 @@ INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value
 class StructureType:
 
 	def __init__(self, filename=None):
-		#RNA Molecule basic info
+        	#RNA Molecule basic info
 		#all values are stored as strings
 		self._name = None
 		self._length = None
@@ -67,11 +70,13 @@ class StructureType:
 		self._ncbp = {}
 		self._ends = {}
 
-		#component Array
-		#The component array is a numpy array of the same length as the molecule where each index
-		#contains the label for the secondary structure tha that index is a part of.
-		# the component array is initialized as None. When the length of the molecule is
-		# parsed from the .st file, a numpy array of that length is generated
+		'''
+		component Array
+		The component array is a numpy array of the same length as the molecule where each index
+		contains the label for the secondary structure tha that index is a part of.
+		the component array is initialized as None. When the length of the molecule is
+		parsed from the .st file, a numpy array of that length is generated
+		'''
 		self._componentArray = None
 
 		#load data from file if file is specified by user
@@ -91,7 +96,7 @@ class StructureType:
 	'''
 	Function Name: loadFile(filename)
 	Description: user accessible function that can be used to load data from a structure type file into
-	the StructureType object is no file is provided at object instantiation.
+	the StructureType object if no file is provided at object instantiation.
 	Parameters: (filename) - str - name of the structure type file to be loaded into the object
 	Return Type: None
 	'''
@@ -264,6 +269,7 @@ class StructureType:
 			if char.isalpha():
 				part2_seq += char
 
+
 		#add data to the stems dictionary
 		newStem = Stem(stemLabel, part1_seq, part2_seq, (part1_start, part1_stop), (part2_start, part2_stop))
 		self._addStemToComponentArray(newStem)
@@ -424,7 +430,6 @@ class StructureType:
 		#get 3' base in trailing pair
 		trailingPair3pBase = bulgeData[6][2]
 
-		#get PK
 		#get pk info
 		if bulgeData[7] != '':
 			pk = bulgeData[7][3]
@@ -544,13 +549,11 @@ class StructureType:
 				break
 		loop2ClosingPairEnd = int(loop2ClosingPairEnd[::-1])
 
-
 		#store closing pair as a tuple
 		closingPairs = ((loop1[4][0], loop1[4][2]), (loop2[4][2], loop2[4][0]))
 
-
 		newInnerLoop = InnerLoop(parentLabel, loop1SubunitLabel, loop2SubunitLabel, loop1Seq, loop2Seq, (loop1StartIndex, loop1StopIndex),
-								(loop2StartIndex, loop2StopIndex), closingPairs, ((loop1ClosingPairStart, loop1ClosingPairEnd), (loop2ClosingPairEnd, loop2ClosingPairStart)))
+								(loop2StartIndex, loop2StopIndex), closingPairs,((loop1ClosingPairStart, loop1ClosingPairEnd), (loop2ClosingPairEnd, loop2ClosingPairStart)))
 		self._addInnerLoopToComponentArray(newInnerLoop)
 		self.addInnerLoop(parentLabel, newInnerLoop)
 
@@ -1153,7 +1156,6 @@ class StructureType:
 	def bulgeLabels(self):
 		return list(self._bulges.keys())
 
-
 	'''
 	Function Name: bulges()
 	Description: Function to get all the Bulge objects for the StructureType object
@@ -1162,7 +1164,6 @@ class StructureType:
 	'''
 	def bulges(self):
 		return list(self._bulges.values())
-
 
 	'''
 	Function Name: numBulges()
@@ -1724,30 +1725,30 @@ class Stem:
 
  	#function calculates the folding free energy change for the stem
 	def energy(self):
-		dG = 0
+		energy = 0
 		seq = self.sequence() #get stem as list of tuple base pairs
 
 		#intermolecular initiation
-		dG += 4.09
+		energy += INTERMOLECULAR_INIT
 
 		#check for symmetry
 		if self._seq_5p == self._seq_3p:
-			dG += 0.43
+			energy += STEM_SYMMETRY_PENALTY
 
 		#check for AU end penalty
 		if seq[0] == ('A', 'U') or seq[0] == ('U', 'A'):
-			dG += 0.45
+			energy += STEM_AU_END_PENALTY
 		if seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A'):
-			dG = 0.45
+			energy = STEM_AU_END_PENALTY
 
 		#sum up watson crick stacking interactions
 		for i in range(0, self._sequenceLen-1):
 			try:
-				dG += StackingEnergies[seq[i]][seq[i+1]]
+				energy += StackingEnergies[seq[i]][seq[i+1]]
 			except KeyError:
 				continue
 
-		return dG
+		return energy
 
 
 
@@ -1903,7 +1904,7 @@ class Bulge:
 	def closingPair5p(self):
 		return self._closingPair5p
 
-	#Function returns a tuple containg the indeices of the 5' closing pair for the bulge
+	#Function returns a tuple containg the indices of the 5' closing pair for the bulge
 	def closingPair5pILoc(self):
 		return self._closingPair5pILoc
 
@@ -1911,32 +1912,30 @@ class Bulge:
 	def closingPair3p(self):
 		return self._closingPair3p
 
-	#Function returns a tuple containg the indeices of the 3' closing pair for the bulge
+	#Function returns a tuple containg the indices of the 3' closing pair for the bulge
 	def closingPair3pILoc(self):
 		return self._closingPair3pILoc
 
 	#function calculates the folding free energy change for the bulge
 	def energy(self):
 		#get bulge initiation value
-		BulgeInitiation = BulgeInit[self._sequenceLen]
-
-		#Intermolecular Initiation
-		intermolecularInitiation = 4.09
+		bulgeInitiation = BulgeInit[self._sequenceLen]
 
 		#Add condition for special c bulge case
 		cBulge = 0
 		if self._sequence == 'C':
-			cBulge = -0.9
+			cBulge = SPECIAL_C_BULGE
 
 		#check for AU end penalty for both closing pairs
 		endPenalty = 0
 		if self._closingPair3p == ('A', 'U') or self._closingPair3p == ('U', 'A'):
-			endPenalty += 0.45
+			endPenalty += BULGE_AU_END_PENALTY
 		if self._closingPair5p == ('A', 'U') or self._closingPair5p == ('U', 'A'):
-			endPenalty = 0.45
+			endPenalty += BULGE_AU_END_PENALTY
 
-		dG = BulgeInitiation + endPenalty + intermolecularInitiation + cBulge
-		return dG
+		#sum energy values and return
+		energy = bulgeInitiation + endPenalty + INTERMOLECULAR_INIT + cBulge
+		return energy
 
 
 
@@ -1945,6 +1944,16 @@ INNER LOOP
 The InnerLoop onject is used to represent the inner loop RNA secondary structure.
 
 Member variable -- data type -- description:
+self._parentLabel -- string -- parent label for the 2 inner loop subcomponents
+self._5pLabel -- string -- label for the 5' inner loop subcomponent
+self._3pLabel -- string -- label for the 3' inner loop subcomponent
+self._5pLoop -- string -- sequence that defines the 5' inner loop subcomponent
+self._3pLoop -- string -- sequence that defines the 3' inner loop subcomponent
+self._loopsLen -- tuple(int, int) -- tuple containing the integer value lengths for the 5' and 3' inner loop subcomponents
+self._5pLoopILoc -- tuple(int, int) -- tuple containing the integer start and stop locations for the 5' inner loop subcomponent
+self._3pLoopILoc -- tuple(int, int) -- tuple containing the integer start and stop locations for the 3' inner loop subcomponent
+self._closingPairs -- tuple((string, string), (string, string)) -- tuple with two nested tuples containing the closing pairs for the inner loop
+self._closingPairsILoc -- tuple((int, int), (int, int)) -- tuple with two nested tuples containing the index locations of the closing pairs for the inner loop
 '''
 class InnerLoop:
 	# __init__ method for InnerLoop object
@@ -1960,45 +1969,52 @@ class InnerLoop:
 		self._closingPairs = closingPairs
 		self._closingPairsILoc = closingPairsILoc
 
+	#defines the string representation of the object
 	def __str__(self):
 		return f'Inner Loop: {self._parentLabel}'
 
+	#Function returns the parent label for the inner loop
 	def parentLabel(self):
 		return self._parentLabel
 
+	#Function returns a tuple containing the labels for the two inner loop subcomponents
 	def subunitLabel(self):
 		return (self._5pLabel, self._3pLabel)
 
+	#Function returns a tuple containing the sequences for the two inner loop subcomponents
 	def loops(self):
 		return (self._5pLoop, self._3pLoop)
 
+	#Function returns a tuple containing the the integer value lengths of the two inner loop components
 	def loopsLen(self):
 		return self._loopsLen
 
+	#Function returns a tuple that contains two tuples containing the integer start and stop positions of the 5' and 3' inner loop components
 	def loopsILoc(self):
 		return (self._5pLoopILoc, self._3pLoopILoc)
 
+	#Function returns a tuple that contains two tuples containing the closing base pairs of the inner loop components
 	def closingPairs(self):
 		return self._closingPairs
 
+	#Function returns a tuple that contains two tuples containing the index locations of the closing base pairs of the inner loop components
 	def closingPairsILoc(self):
 		return self._closingPairsILoc
 
-	#UNFINISHED
+	#Function to calculate the free energy for the inner loop
 	def energy(self):
 		#intermolecular Initiation portion
 		intermolecularInit = 4.09
 
-
-		#check for 1x1
+		#check for 1x1 - value taken from imported dicitionary
 		if len(self._5pLoop) == 1 and len(self._3pLoop) == 1:
 			loopEnergy = InnerLoop_1x1_Energies[self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop]
 			return intermolecularInit + loopEnergy
-		#check for 1x2
+		#check for 1x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 1 and len(self._3pLoop) == 2:
 			loopEnergy = InnerLoop_1x2_Energies[self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[0], self._3pLoop[1]]
 			return intermolecularInit + loopEnergy
-		#check for 2x2
+		#check for 2x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 2:
 			loops = list(zip(list(self._5pLoop), list(self._3pLoop[::-1])))
 			loopEnergy = InnerLoop_2x2_Energies[self._closingPairs[0], self._closingPairs[1], loops[0], loops[1]]
@@ -2006,26 +2022,154 @@ class InnerLoop:
 		#Other cases
 		else:
 			#Inner loop initiation energy
-			ilInit = InternalLoopInit[len(self._5pLoop) + len(self._3pLoop)]
+			loopLength = len(self._5pLoop) + len(self._3pLoop)
+
+			try: #try to get initiation energy from dictionary
+				ilInit = InternalLoopInit[loopLength]
+			except: #otherwise calculate value
+				ilInit = 2.0 + (1.08 * math.log(float(loopLength)))
 
 			#asymmetry penalty
-			asym = abs(len(self._5pLoop) - len(self._3pLoop)) * 0.6
+			asym = abs(len(self._5pLoop) - len(self._3pLoop)) * INNER_LOOP_ASYMMETRY_PENALTY
 
-			#end penalty
-			endPenalty = 0
-			# 2x3 end penalty cases
-			if len(self._5pLoop) == 2 and len(self._3pLoop) == 3:
+			#AU / GU Closure penalty
+			closingPenalty = 0
+			closingPair5p, closingPair3p = self.closingPairs() #get the closing pairs for the inner loop
+			if closingPair5p in [('A', 'U'), ('G', 'U'), ('U', 'A'), ('U', 'G')]: #check for penalty condition in 5' closing pair
+				closingPenalty += 0.7
+			if closingPair3p in [('A', 'U'), ('G', 'U'), ('U', 'A'), ('U', 'G')]: #check for penalty in 3' closing pair
+				closingPenalty += 0.7
+
+			#Check for mismatches for base pairs on either end of the inner loop
+			mismatch = 0
+			#2x3 Inner Loops
+			if (len(self._5pLoop) == 2 and len(self._3pLoop == 3)):
 				pass
-			#Other end penalty cases
+			#3x2 Inner Loops
+			elif (len(self._5pLoop) == 3 and len(self._3pLoop == 2)):
+				pass
+			#other inner loops
 			else:
 				pass
 
-			return ilInit + asym + endPenalty
+			#sum energy components and return
+			return INTERMOLECULAR_INIT + ilInit + asym + closingPenalty + mismatch
 
 
 
 '''
-Mulitloops
+External Loops
+
+Member variable -- data type -- description:
+self._label -- string -- label for the external loop secondary structure
+self._sequence -- string -- base sequence that defines the external loop
+self._sequenceILoc --tuple(int, int) -- tuple containing the integer start and stop locations for the external loop sequence
+self._closingPair5p -- tuple(string, string) -- tuple that contains the 5' closing base pair for the external loop
+self._closingPair5pILoc -- tuple(int, int) -- tuple containg the integer index locations for the 5' closing pair
+self._closingPair3p -- tuple(string, string) -- tuple that contains the 3' closing base pair for the external loop
+self._closingPair3pILoc -- tuple(int, int) -- tuple containg the integer index locations for the 3' closing pair
+'''
+class ExternalLoop:
+	#__init__() method for the external loop object
+	def __init__(self, label, seq, seqILoc, closingPair5p, closingPair5pILoc, closingPair3p, closingPair3pILoc):
+		self._label = label
+		self._sequence = seq
+		self._sequenceILoc = seqILoc
+		self._closingPair5p = closingPair5p
+		self._closingPair5pILoc = closingPair5pILoc
+		self._closingPair3p = closingPair3p
+		self._closingPair3pILoc = closingPair3pILoc
+
+	#Defines the string representation of the external loop
+	def __str__(self):
+		return f'External Loop: {self._label}'
+
+	#Function returns the label for the external loop
+	def label(self):
+		return self._label
+
+	#Function returns the sequence that defines the external loop
+	def sequence(self):
+		return self._sequence
+
+	#Function returns a tuple containing the start and stop index locations for the external loop sequence
+	def sequenceILoc(self):
+		return self._sequenceILoc
+
+
+'''
+ENDS
+
+Member variable -- data type -- description:
+self._label -- string -- label for the end objects
+self._sequence -- string -- sequence that defines the end objects
+self._sequenceILoc -- tuple(int, int) -- tuple containing the integer start and stop locations for the end object
+'''
+class End:
+	#__init__() method for end object
+	def __init__(self, label, seq, seqILoc):
+		self._label = label
+		self._sequence = seq
+		self._sequenceILoc = seqILoc
+
+	#define string representation of end object
+	def __str__(self):
+		return f'End: {self._label}'
+
+	#Function returns the label for the end object
+	def label(self):
+		return self._label
+
+	#Function returns the sequence that defines the end object
+	def sequence(self):
+		return self._sequence
+
+	#Function returns a tuple that contains the integer start and stop index locations for the end object
+	def sequenceILoc(self):
+		return self._sequenceILoc
+
+
+'''
+NON-CANONICAL BASE PAIRINGS
+
+Member variable -- data type -- description:
+self._label -- string -- label for the NCBP objects
+self._basePair -- tuple(string, string) -- tuple containing the base pairs that define the NCBP object
+self._basePairILoc -- tuple(int, int) -- tuple containing the integer locations of the NCBP
+self._parentUnit -- string -- label for the secondary structure that the NCBP is located in
+'''
+class NCBP:
+	#__init__() method for the NCBP object
+	def __init__(self, label, basePair, basePairILoc, loc):
+		self._label = label
+		self._basePair = basePair
+		self._basePairILoc = basePairILoc
+		self._parentUnit = loc
+
+	#Defines the string representation of the NCBP object
+	def __str__(self):
+		return f'NCBP: {self._label}'
+
+	#Functions returns the label for the NCBP object
+	def label(self):
+		return self._label
+
+	#Function returns a tuple containing the two base pairs that define the NCBP object
+	def basePairs(self):
+		return self._basePair
+
+	#Function returns a tuple containing the integer locations of the base pairs that define the NCBP
+	def basePairILoc(self):
+		return self._basePairILoc
+
+	#Function returns a string the identifies the secondary structure that the NCBP occurs in
+	def parentUnit(self):
+		return self._parentUnit
+
+
+
+'''
+Mulitloops -- UNFINISHED
 '''
 class Multiloop:
 	def __init__(self, parentLabel, subunitLabel, sequence, sequenceILoc, closingPair5p, closingPair5pILoc, closingPair3p, closingPair3pILoc):
@@ -2056,84 +2200,7 @@ class Multiloop:
 
 
 '''
-External Loops
-'''
-class ExternalLoop:
-	def __init__(self, label, seq, seqILoc, closingPair5p, closingPair5pILoc, closingPair3p, closingPair3pILoc):
-		self._label = label
-		self._sequence = seq
-		self._sequenceILoc = seqILoc
-		self._closingPair5p = closingPair5p
-		self._closingPair5pILoc = closingPair5pILoc
-		self._closingPair3p = closingPair3p
-		self._closingPair3pILoc = closingPair3pILoc
-
-	def __str__(self):
-		return f'External Loop: {self._label}'
-
-	def label(self):
-		return self._label
-
-	def sequence(self):
-		return self._sequence
-
-	def sequenceILoc(self):
-		return self._sequenceILoc
-
-
-
-'''
-ENDS
-'''
-class End:
-	def __init__(self, label, seq, seqILoc):
-		self._label = label
-		self._sequence = seq
-		self._sequenceILoc = seqILoc
-
-	def __str__(self):
-		return f'End: {self._label}'
-
-	def label(self):
-		return self._label
-
-	def sequence(self):
-		return self._sequence
-
-	def sequenceILoc(self):
-		return self._sequenceILoc
-
-
-'''
-NON CANONICAL BASE PAIRINGS
-
-'''
-class NCBP:
-	def __init__(self, label, basePair, basePairILoc, loc):
-		self._label = label
-		self._basePair = basePair
-		self._basePairILoc = basePairILoc
-		self._parentUnit = loc
-
-	def __str__(self):
-		return f'NCBP: {self._label}'
-
-	def label(self):
-		return self._label
-
-	def basePairs(self):
-		return self._basePair
-
-	def basePairILoc(self):
-		return self._basePairILoc
-
-	def parentUnit(self):
-		return self._parentUnit
-
-
-
-'''
-PSEUDOKNOTS
+PSEUDOKNOTS -- UNFINISHED
 '''
 class Pseudoknot:
 	pass
