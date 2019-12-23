@@ -12,20 +12,35 @@ import numpy as np
 import re
 
 ## Free Energy Parameter Imports ##
-from TurnerParameters.parameters.LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit
-from TurnerParameters.parameters.StackingEnergies import StackingEnergies
-from TurnerParameters.parameters.InnerLoop_1x1_Energies import InnerLoop_1x1_Energies
-from TurnerParameters.parameters.InnerLoop_1x2_Energies import InnerLoop_1x2_Energies
-from TurnerParameters.parameters.InnerLoop_2x2_Energies import InnerLoop_2x2_Energies
-from TurnerParameters.parameters.InnerLoopMismatches import InnerLoopMismatches_2x3
+from TurnerParameters.parameters.LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit #initiation parameters for internal loops, bulges, and hairpins
+from TurnerParameters.parameters.StackingEnergies import StackingEnergies #Watson-Crick stacking interaction parameters
+from TurnerParameters.parameters.InnerLoop_1x1_Energies import InnerLoop_1x1_Energies #Stabilities for 1x1 internal loops
+from TurnerParameters.parameters.InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 internal loops
+from TurnerParameters.parameters.InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
+from TurnerParameters.parameters.InnerLoopMismatches import InnerLoopMismatches_2x3 #energy values for 2x3 inner loop mismatches
+from TurnerParameters.parameters.StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
 
 ## Other Free Energy Parameter Constants ##
 INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value
+
+#Stems
 STEM_SYMMETRY_PENALTY = 0.43
 STEM_AU_END_PENALTY = 0.45
+
+#Inner loops
 INNER_LOOP_ASYMMETRY_PENALTY = 0.6
+
+#Bulges
 SPECIAL_C_BULGE = -0.9
 BULGE_AU_END_PENALTY = 0.45
+
+#Hairpins
+HAIRPIN_UU_GA_FIRST_MISMATCH_BONUS = -0.9
+HAIRPIN_GG_FIRST_MISMATCH_BONUS = -0.8
+HAIRPIN_SPECIAL_GU_CLOSURE = -2.2
+HAIRPIN_C3 = 1.5
+HAIRPIN_C_LOOP_A = 0.3
+HAIRPIN_C_LOOP_B = 1.6
 
 '''
 ## About the structureTypeObject ##
@@ -34,7 +49,7 @@ BULGE_AU_END_PENALTY = 0.45
 class StructureType:
 
 	def __init__(self, filename=None):
-        	#RNA Molecule basic info
+		#RNA Molecule basic info
 		#all values are stored as strings
 		self._name = None
 		self._length = None
@@ -1787,8 +1802,8 @@ class Hairpin:
 		self._sequence = seq
 		self._sequenceLen = len(seq)
 		self._sequenceILoc = seq_index
-		self._closing_pair = closing_pair
-		self._closing_index = closing_index
+		self._closingPair = closing_pair
+		self._closingPairILoc = closing_index
 		self._pk = pk
 
 	#define string representation of object
@@ -1813,11 +1828,11 @@ class Hairpin:
 
 	#function returns a tuple that contains the closing pair for the hairpin. Ex: (5' closing base, 3' closing base)
 	def closingPair(self):
-		return self._closing_pair
+		return self._closingPair
 
 	#Function returns the index locations of the closing pair bases as a tuple. Ex: (5' closing index, 3' closing index)
 	def closingPairILoc(self):
-		return self._closing_index
+		return self._closingPairILoc
 
 	#function returns the pseadoknot label for the hairpin if it exists
 	def hairpinPK(self):
@@ -1825,7 +1840,40 @@ class Hairpin:
 
 	#function to calculate folding free energy of hairpin
 	def energy(self):
-		pass
+		#get hairpin initiation term
+		if self._sequenceLen in HairpinInit:
+			init = HairpinInit[self._sequenceLen]
+		else:
+			pass
+
+		#get terminal mismatch parameter
+		firstMismatch = (self._sequence[0], self._sequence[-1])
+		try:
+			terminalMismatch = StackTerminalMismatches[self._closingPair][firstMismatch]
+		except KeyError:
+			terminalMismatch = 0
+
+		#UU/GA first mismatch bonus
+		uu_ga_bonus = 0
+		if firstMismatch == ('U', 'U') or firstMismatch == ('G', 'A'):
+			uu_ga_bonus = HAIRPIN_UU_GA_FIRST_MISMATCH_BONUS
+
+		#GG first mismatch bonus
+		gg_bonus = 0
+		if firstMismatch == ('G', 'G'):
+			gg_bonus = HAIRPIN_GG_FIRST_MISMATCH_BONUS
+
+		#Special GU closure
+		gu_closure = 0
+		if self._closingPair == ('G', 'U') and firstMismatch == ('G', 'G'):
+			gu_closure = HAIRPIN_SPECIAL_GU_CLOSURE
+
+		#All C loop penalty
+		c_loop_penalty = 0
+		if self._sequence.count('C') == self._sequenceLen:
+			c_loop_penalty = (self._sequenceLen * HAIRPIN_C_LOOP_A) + HAIRPIN_C_LOOP_B
+
+		return init + terminalMismatch + uu_ga_bonus + gg_bonus + gu_closure + c_loop_penalty
 
 
 '''
