@@ -5,6 +5,12 @@ Author: Michael Hathaway
 Description: python module that defines the structureType Object.
 The structureType Object provides a user friendly mechanism for working with
 RNA structure type files in the python programming language.
+
+TO DO:
+- add condition to stem energy function for adjacent single bulges
+- check stem, inner loop, and haripin energy functions
+- add functions for finding adjacent features
+- make sure all comments/documentation are done
 '''
 
 ## Module Imports ##
@@ -22,8 +28,10 @@ from TurnerParameters.parameters.StackTerminalMismatches import StackTerminalMis
 
 ## Other Free Energy Parameter Constants ##
 INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value
+R = 0.001987204258 #source: https://en.wikipedia.org/wiki/Gas_constant
+T = 310.15
 
-#Stems
+#Stems(source: https://rna.urmc.rochester.edu/NNDB/turner04/wc-parameters.html)
 STEM_SYMMETRY_PENALTY = 0.43
 STEM_AU_END_PENALTY = 0.45
 
@@ -1740,28 +1748,27 @@ class Stem:
 		energy = 0
 		seq = self.sequence() #get stem as list of tuple base pairs
 
-		#intermolecular initiation
-		energy += INTERMOLECULAR_INIT
-
 		#check for symmetry
+		symmetry = 0
 		if self._seq_5p == self._seq_3p:
-			energy += STEM_SYMMETRY_PENALTY
+			symmetry = STEM_SYMMETRY_PENALTY
 
 		#check for AU end penalty
+		endPenalty = 0
 		if seq[0] == ('A', 'U') or seq[0] == ('U', 'A'):
-			energy += STEM_AU_END_PENALTY
+			endPenalty += STEM_AU_END_PENALTY
 		if seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A'):
-			energy = STEM_AU_END_PENALTY
+			endPenalty = STEM_AU_END_PENALTY
 
 		#sum up watson crick stacking interactions
+		stack = 0
 		for i in range(0, self._sequenceLen-1):
 			try:
-				energy += StackingEnergies[seq[i]][seq[i+1]]
+				stack += StackingEnergies[seq[i]][seq[i+1]]
 			except KeyError:
 				continue
 
-		return energy
-
+		return INTERMOLECULAR_INIT + symmetry + endPenalty + stack
 
 
 
@@ -1787,7 +1794,7 @@ self._pk -- Int -- ???
                   C
                 A   G
               G       A
-               C     G
+               C     G <- first mismatch
                 A - U <- _Closing Pair = ('A', 'U')
                 C - G
                 G - C
@@ -1841,10 +1848,10 @@ class Hairpin:
 	#function to calculate folding free energy of hairpin
 	def energy(self):
 		#get hairpin initiation term
-		if self._sequenceLen in HairpinInit:
+		try: #try to get from dictionary
 			init = HairpinInit[self._sequenceLen]
-		else:
-			pass
+		except KeyError: #otherwise calculate
+			init = HairpinInit[9] + (1.75 * R * T * np.log(self._sequenceLen/9))
 
 		#get terminal mismatch parameter
 		firstMismatch = (self._sequence[0], self._sequence[-1])
@@ -1963,24 +1970,24 @@ class Bulge:
 
 	#function calculates the folding free energy change for the bulge
 	def energy(self):
-		#get bulge initiation value
-		bulgeInitiation = BulgeInit[self._sequenceLen]
+		if self._sequenceLen == 1: #bulges of length 1
+			#check for special C bulge case
+			#special C condition = sequence is all 'C' with at least one adjacent 'C'
+			specialC = 0
+			if self._sequence == 'C' and (self._closingPair5p[0] == 'C' or self._closingPair3p[0] == 'C'):
+				specialC = SPECIAL_C_BULGE
 
-		#Add condition for special c bulge case
-		cBulge = 0
-		if self._sequence == 'C':
-			cBulge = SPECIAL_C_BULGE
+			#get base pair stack
+			#base pair stack = the stack of the closing base pairs as if the bulge was not present
+			basePairStack = StackingEnergies[self._closingPair5p][self._closingPair3p]
 
-		#check for AU end penalty for both closing pairs
-		endPenalty = 0
-		if self._closingPair3p == ('A', 'U') or self._closingPair3p == ('U', 'A'):
-			endPenalty += BULGE_AU_END_PENALTY
-		if self._closingPair5p == ('A', 'U') or self._closingPair5p == ('U', 'A'):
-			endPenalty += BULGE_AU_END_PENALTY
+			return BulgeInit[1] + specialC + basePairStack
 
-		#sum energy values and return
-		energy = bulgeInitiation + endPenalty + INTERMOLECULAR_INIT + cBulge
-		return energy
+		else: #bulge of length > 1
+			try: #try to get value from dictionary
+				return BulgeInit[self._sequenceLen]
+			except KeyError: #otherwise calculate
+				return BulgeInit[6] + (1.75 * R * T * np.log(self._sequenceLen/6))
 
 
 
