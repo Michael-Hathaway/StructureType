@@ -8,9 +8,10 @@ RNA structure type files in the python programming language.
 
 TO DO:
 - add condition to stem energy function for adjacent single bulges
-- check stem, inner loop, and haripin energy functions
+- finish inner loop energy function
 - add functions for finding adjacent features
 - make sure all comments/documentation are done
+- if time, try to make progress of multiloops and pseudoknots
 '''
 
 ## Module Imports ##
@@ -23,10 +24,10 @@ from TurnerParameters.parameters.StackingEnergies import StackingEnergies #Watso
 from TurnerParameters.parameters.InnerLoop_1x1_Energies import InnerLoop_1x1_Energies #Stabilities for 1x1 internal loops
 from TurnerParameters.parameters.InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 internal loops
 from TurnerParameters.parameters.InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
-from TurnerParameters.parameters.InnerLoopMismatches import InnerLoopMismatches_2x3 #energy values for 2x3 inner loop mismatches
+from TurnerParameters.parameters.InnerLoopMismatches import InnerLoopMismatches_2x3, OtherInnerLoopMismtaches #energy values for 2x3 inner loop mismatches
 from TurnerParameters.parameters.StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
 
-## Other Free Energy Parameter Constants ##
+## Free Energy Parameter Constants ##
 INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value
 R = 0.001987204258 #source: https://en.wikipedia.org/wiki/Gas_constant
 T = 310.15
@@ -145,10 +146,10 @@ class StructureType:
 		#try to open the provided file + error handling
 		try:
 			f = open(filename, 'r')
-		except OSError:
+		except OSError: #error finding or opening file
 			print('An error ocurred when trying to access the file. Check to make sure that the file exists and that the correct filepath was provided.')
 			return None
-		except:
+		except: #something weird happened
 			print('Something unexpected ocurred when accessing the file')
 			return None
 
@@ -913,7 +914,7 @@ class StructureType:
 	def _addInnerLoopToComponentArray(self, innerLoop):
 		for pair in innerLoop.loopsILoc():
 			for i in range(pair[0]-1, pair[1]):
-				self._componentArray[i] = innerLoop.parentLabel()
+				self._componentArray[i] = innerLoop.label()
 
 	'''
 	Function Name: _addExternalLoopToComponentArray(el)
@@ -933,7 +934,7 @@ class StructureType:
 	'''
 	def _addMultiloopToComponentArray(self, multiloop):
 		for i in range(multiloop.sequenceILoc()[0]-1, multiloop.sequenceILoc()[1]):
-			self._componentArray[i] = multiloop.parentLabel() + '.' + multiloop.subunitLabel()
+			self._componentArray[i] = multiloop.label() + '.' + multiloop.subunitLabel()
 
 	'''
 	Function Name: componentArray()
@@ -1628,27 +1629,27 @@ class StructureType:
 
 		#need special block to handle internal loops
 		if label[0] == 'I': #search is for innerloop
-			parent = label[:-2]
-			subunit = label[-1]
-			return self.getInnerLoopSubunitByLabel(parent, subunit)
-			'''if subLabel is not None: #subunit ID provided
-					return self.getInnerLoopSubunitByLabel(label, subLabel)
-			else: #subunit ID not provided
-					return self.getInnerLoopByLabel(label)'''
+			return self.getInnerLoopByLabel(label)
 
 		#need special block for handeling multiloops
 		if label[0] == 'M':
 			parent = label[:-2]
 			subunit = label[-1]
 			return self.getMultiloopSubunitByLabel(parent, subunit)
-			'''if subLabel is not None: #subunit ID provided
-					return self.getMultiloopSubunitByLabel(label, subLabel)
-				else: #subunit ID not provided
-					return self.getMultiloopByLabel(label)'''
 
 		#if label is not handled by any of these blocks
 		print('Label not found in StructureType object.')
 		return None
+
+
+		'''
+		Function Name: neighbors(label)
+		Description:
+		Parameters:
+		Return Type:
+		'''
+		def neighbors(self, label):
+			feature = self.getComponentByLabel(label) #get feature of interest
 
 
 
@@ -1851,7 +1852,7 @@ class Hairpin:
 		try: #try to get from dictionary
 			init = HairpinInit[self._sequenceLen]
 		except KeyError: #otherwise calculate
-			init = HairpinInit[9] + (1.75 * R * T * np.log(self._sequenceLen/9))
+			init = HairpinInit[9] + (1.75 * R * T * np.log(float(self._sequenceLen/9.0)))
 
 		#get terminal mismatch parameter
 		firstMismatch = (self._sequence[0], self._sequence[-1])
@@ -1987,7 +1988,7 @@ class Bulge:
 			try: #try to get value from dictionary
 				return BulgeInit[self._sequenceLen]
 			except KeyError: #otherwise calculate
-				return BulgeInit[6] + (1.75 * R * T * np.log(self._sequenceLen/6))
+				return BulgeInit[6] + (1.75 * R * T * np.log(float(self._sequenceLen/6.0)))
 
 
 
@@ -2026,7 +2027,7 @@ class InnerLoop:
 		return f'Inner Loop: {self._parentLabel}'
 
 	#Function returns the parent label for the inner loop
-	def parentLabel(self):
+	def label(self):
 		return self._parentLabel
 
 	#Function returns a tuple containing the labels for the two inner loop subcomponents
@@ -2055,57 +2056,84 @@ class InnerLoop:
 
 	#Function to calculate the free energy for the inner loop
 	def energy(self):
-		#intermolecular Initiation portion
-		intermolecularInit = 4.09
-
 		#check for 1x1 - value taken from imported dicitionary
 		if len(self._5pLoop) == 1 and len(self._3pLoop) == 1:
-			loopEnergy = InnerLoop_1x1_Energies[self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop]
-			return intermolecularInit + loopEnergy
+			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop) in InnerLoop_1x1_Energies: #check if key in dictionary
+				loopEnergy = InnerLoop_1x1_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop)]
+				return loopEnergy
+			else: #otherwise return None
+				return None
 		#check for 1x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 1 and len(self._3pLoop) == 2:
-			loopEnergy = InnerLoop_1x2_Energies[self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[0], self._3pLoop[1]]
-			return intermolecularInit + loopEnergy
+			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[0], self._3pLoop[1]) in InnerLoop_1x2_Energies: #check if key in dictionary
+				loopEnergy = InnerLoop_1x2_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[0], self._3pLoop[1])]
+				return loopEnergy
+			else: #otherwise return None
+				return None
 		#check for 2x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 2:
-			loops = list(zip(list(self._5pLoop), list(self._3pLoop[::-1])))
-			loopEnergy = InnerLoop_2x2_Energies[self._closingPairs[0], self._closingPairs[1], loops[0], loops[1]]
-			return intermolecularInit + loopEnergy
-		#Other cases
+			loops = list(zip(list(self._5pLoop), list(self._3pLoop[::-1]))) #convert loop sequences to proper format for dictionary
+			if (self._closingPairs[0], self._closingPairs[1], loops[0], loops[1]) in InnerLoop_2x2_Energies: #check if key in dictionary
+				loopEnergy = InnerLoop_2x2_Energies[(self._closingPairs[0], self._closingPairs[1], loops[0], loops[1])]
+				return loopEnergy
+			else: #otherwise return None
+				return None
+		#Other cases need to be calculated
 		else:
-			#Inner loop initiation energy
+			#get total length of inner loop for initiation parameter calculation
 			loopLength = len(self._5pLoop) + len(self._3pLoop)
-
-			try: #try to get initiation energy from dictionary
+			if loopLength in InternalLoopInit:#try to get initiation energy from dictionary
 				ilInit = InternalLoopInit[loopLength]
-			except: #otherwise calculate value
-				ilInit = 2.0 + (1.08 * math.log(float(loopLength)))
+			else: #otherwise calculate value
+				ilInit = InternalLoopInit[6] + (1.08 * np.log(float(loopLength)/6.0))
 
 			#asymmetry penalty
 			asym = abs(len(self._5pLoop) - len(self._3pLoop)) * INNER_LOOP_ASYMMETRY_PENALTY
 
 			#AU / GU Closure penalty
 			closingPenalty = 0
+			endPenaltyPairs = [('A', 'U'), ('G', 'U'), ('U', 'A'), ('U', 'G')] #closing pairs that result in end penalty
 			closingPair5p, closingPair3p = self.closingPairs() #get the closing pairs for the inner loop
-			if closingPair5p in [('A', 'U'), ('G', 'U'), ('U', 'A'), ('U', 'G')]: #check for penalty condition in 5' closing pair
+			if closingPair5p in endPenaltyPairs: #check for penalty condition in 5' closing pair
 				closingPenalty += 0.7
-			if closingPair3p in [('A', 'U'), ('G', 'U'), ('U', 'A'), ('U', 'G')]: #check for penalty in 3' closing pair
+			if closingPair3p in endPenaltyPairs: #check for penalty in 3' closing pair
 				closingPenalty += 0.7
 
 			#Check for mismatches for base pairs on either end of the inner loop
 			mismatch = 0
+			#1 x (n-1) Inner Loops
+			if (len(self._5pLoop) == 1 and len(self._3pLoop) == loopLength-1) or (len(self._5pLoop) == loopLength-1 and len(self._3pLoop) == 1):
+				pass #Mismatch energy is 0, so we dont need to do anything
 			#2x3 Inner Loops
-			if (len(self._5pLoop) == 2 and len(self._3pLoop == 3)):
-				pass
-			#3x2 Inner Loops
-			elif (len(self._5pLoop) == 3 and len(self._3pLoop == 2)):
-				pass
+			elif (len(self._5pLoop) == 2 and len(self._3pLoop) == 3):
+				loop1, loop2 = self.loops() #get both loops
+				mismatch1 = (loop1[0], loop2[-1]) #get 1st mismatch
+				mismatch2 = (loop1[-1], loop2[0]) #get 2nd mismatch
+
+				#check for mismatch condition between 5' closing pair and first mismatch
+				if (self._closingPairs[0], mismatch1) in InnerLoopMismatches_2x3:
+					mismatch += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch1)]
+
+				#check for mismatch condition between 3'closing pair and mismatch 2
+				if (self._closingPairs[1], mismatch2) in InnerLoopMismatches_2x3:
+					mismatch += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch2)]
+
 			#other inner loops
 			else:
-				pass
+				loop1, loop2 = self.loops() #get both loops
+				mismatch1 = (loop1[0], loop2[-1]) #get 1st mismatch
+				mismatch2 = (loop1[-1], loop2[0]) #get 2nd mismatch
+
+				#check for mismatch 1 for condition
+				if mismatch1 in OtherInnerLoopMismtaches:
+					mismatch += OtherInnerLoopMismtaches[mismatch1]
+
+				#check mismatch 2 for condition
+				if mismatch2 in OtherInnerLoopMismtaches:
+					mismatch += OtherInnerLoopMismtaches[mismatch2]
 
 			#sum energy components and return
-			return INTERMOLECULAR_INIT + ilInit + asym + closingPenalty + mismatch
+			return ilInit + asym + closingPenalty + mismatch
 
 
 
@@ -2237,7 +2265,7 @@ class Multiloop:
 	def __str__(self):
 		return f'Multiloop: {self._parentLabel}.{self._subunitLabel}'
 
-	def parentLabel(self):
+	def label(self):
 		return self._parentLabel
 
 	def subunitLabel(self):
