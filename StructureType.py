@@ -56,7 +56,7 @@ HAIRPIN_C_LOOP_B = 1.6
 
 '''
 class StructureType:
-
+	#__init__() method for the StructureTyoe object
 	def __init__(self, filename=None):
 		#RNA Molecule basic info
 		#all values are stored as strings
@@ -108,7 +108,7 @@ class StructureType:
 			self._loadFile(filename)
 
 
-	#if you use the structureTypeObject in a print() statement it will return the RNA molecule name.
+	#define string representation of the molecule
 	def __str__(self):
 		return f'RNA: {self._name}'
 
@@ -180,7 +180,7 @@ class StructureType:
 			elif lineCounter == 7:
 				self._structureArray = line[:-1] #drop the newline character
 
-			#not really sure what this notation is ???
+			#varna notation for the molecule
 			elif lineCounter == 8:
 				self._varna = line[:-1] #drop the newline characters
 
