@@ -7,7 +7,6 @@ The structureType Object provides a user friendly mechanism for working with
 RNA structure type files in the python programming language.
 
 TO DO:
-- add condition to stem energy function for adjacent single bulges
 - finish inner loop energy function
 - add functions for finding adjacent features
 - make sure all comments/documentation are done
@@ -912,7 +911,7 @@ class StructureType:
 	Return Type:
 	'''
 	def _addInnerLoopToComponentArray(self, innerLoop):
-		for pair in innerLoop.loopsILoc():
+		for pair in innerLoop.sequenceILoc():
 			for i in range(pair[0]-1, pair[1]):
 				self._componentArray[i] = innerLoop.label()
 
@@ -1217,14 +1216,15 @@ class StructureType:
 	Parameters: (bulgeLabel) - str - label for bulge of interest
 	Return Type: tupel(str, str)
 	'''
-	def bulgeNeighbors(self, bulgeLabel):
+	'''
+	def neighbors(self, bulgeLabel):
 		bulgeILoc = self.getBulgeByLabel(bulgeLabel).sequenceILoc() #get tuple with bulge start and stop
 
 		# bulgeILoc = (start, stop)
 		# in component array bulge will be at (start-1, stop-1) because of 0 indexing
 		# so adjacent features will be at (start-2, stop)
 		return (self._componentArray[bulgeILoc[0]-2], self._componentArray[bulgeILoc[1]])
-
+	'''
 
 
 
@@ -1611,7 +1611,7 @@ class StructureType:
 	Parameters: (label) - str - label of the feature to be accessed
 				(subLabel=None) - str - sublabel for components like innerloops and multiloops, default value is None
 				and it will not be used unless specified.
-	Return Type: returns a structureTypeComponent
+	Return Type: returns a structureType Component
 	'''
 	def getComponentByLabel(self, label, subLabel=None):
 		if label[0] == 'S':
@@ -1626,30 +1626,35 @@ class StructureType:
 			return self.getEndByLabel(label)
 		elif label[0] == 'N':
 			return self.getNCBPByLabel(label)
-
-		#need special block to handle internal loops
-		if label[0] == 'I': #search is for innerloop
+		elif label[0] == 'I': #search is for innerloop
 			return self.getInnerLoopByLabel(label)
-
 		#need special block for handeling multiloops
-		if label[0] == 'M':
+		elif label[0] == 'M':
 			parent = label[:-2]
 			subunit = label[-1]
 			return self.getMultiloopSubunitByLabel(parent, subunit)
+		else:
+			#if label is not handled by any of these blocks
+			print('Label not found in StructureType object.')
+			return None
 
-		#if label is not handled by any of these blocks
-		print('Label not found in StructureType object.')
-		return None
 
+	'''
+	Function Name: neighbors(label)
+	Description: Function to get the secondary structures adjacent to the feature of interest.
+	Parameters:
+	Return Type:
+	'''
+	def neighbors(self, label):
+		adjacentFeatures = [] #list to store the adjacent RNA features
 
-		'''
-		Function Name: neighbors(label)
-		Description:
-		Parameters:
-		Return Type:
-		'''
-		def neighbors(self, label):
-			feature = self.getComponentByLabel(label) #get feature of interest
+		if label in self._componentArray: #check if the feature is valid
+			featureILoc = self.getComponentByLabel(label).sequenceILoc() #get index locations of the feature
+			for loc in featureILoc: #iterate through locations(featureILoc is a tuple): some values will be tuples others will be interger values
+				pass #need two cases: for tuple and for integer values
+		else: #otherwise print error and return None
+			print('The label provided does not identify a feature of this molecule.')
+			return None
 
 
 
@@ -1735,6 +1740,10 @@ class Stem:
 	#function returns the length of the stem
 	def sequenceLen(self):
 		return self._sequenceLen
+
+	#function returns a tuple containing two tuples that contain start and stop indices for the 5' and 3' sequence of the stem
+	def sequenceILoc(self):
+		return (self._seq_5p_index, self._seq_3p_index)
 
 	#function returns the start and stop indices of the 5' portion of the stem in a tuple. Ex: (start, stop)
 	def sequence5pILoc(self):
@@ -2043,7 +2052,7 @@ class InnerLoop:
 		return self._loopsLen
 
 	#Function returns a tuple that contains two tuples containing the integer start and stop positions of the 5' and 3' inner loop components
-	def loopsILoc(self):
+	def sequenceILoc(self):
 		return (self._5pLoopILoc, self._3pLoopILoc)
 
 	#Function returns a tuple that contains two tuples containing the closing base pairs of the inner loop components
@@ -2117,7 +2126,6 @@ class InnerLoop:
 				#check for mismatch condition between 3'closing pair and mismatch 2
 				if (self._closingPairs[1], mismatch2) in InnerLoopMismatches_2x3:
 					mismatch += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch2)]
-
 			#other inner loops
 			else:
 				loop1, loop2 = self.loops() #get both loops
