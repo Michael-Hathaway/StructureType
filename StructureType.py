@@ -5,12 +5,6 @@ Author: Michael Hathaway
 Description: python module that defines the structureType Object.
 The structureType Object provides a user friendly mechanism for working with
 RNA structure type files in the python programming language.
-
-TO DO:
-- finish inner loop energy function
-- add functions for finding adjacent features
-- make sure all comments/documentation are done
-- if time, try to make progress of multiloops and pseudoknots
 '''
 
 ## Module Imports ##
@@ -51,8 +45,10 @@ HAIRPIN_C_LOOP_A = 0.3
 HAIRPIN_C_LOOP_B = 1.6
 
 '''
-## About the structureTypeObject ##
-
+## About the structureType object ##
+The StructureType object is a python object-oriented representation of the information contained within an RNA Structure Type file.
+The object provides a mechanism to easily access and work with the data in the python programming language. In addition it includes
+functionality for calculating the energy associated with certain RNA secondary structures with the RNA molecule.
 '''
 class StructureType:
 	#__init__() method for the StructureTyoe object
@@ -769,13 +765,13 @@ class StructureType:
 		ncbpLabel = ncbpData[0]
 
 		#get index of 5' base
-		base1ILoc = int(ncbpData[1])
+		base1Span = int(ncbpData[1])
 
 		#get 5' base
 		base1 = ncbpData[2]
 
 		#get index 3' base
-		base2ILoc = int(ncbpData[3])
+		base2Span = int(ncbpData[3])
 
 		#get 3' base
 		base2 = ncbpData[4]
@@ -787,7 +783,7 @@ class StructureType:
 			loc = ncbpData[5]
 
 
-		newNCBP = NCBP(ncbpLabel, (base1, base2), (base1ILoc, base2ILoc), loc)
+		newNCBP = NCBP(ncbpLabel, (base1, base2), (base1Span, base2Span), loc)
 		self.addNCBP(ncbpLabel, newNCBP)
 
 
@@ -868,10 +864,10 @@ class StructureType:
 	Return Type: None
 	'''
 	def _addStemToComponentArray(self, stem):
-		for i in range(stem.sequence5pILoc()[0]-1, stem.sequence5pILoc()[1]):
+		for i in range(stem.sequence5pSpan()[0]-1, stem.sequence5pSpan()[1]):
 			self._componentArray[i] = stem.label()
 
-		for i in range(stem.sequence3pILoc()[0]-1, stem.sequence3pILoc()[1]):
+		for i in range(stem.sequence3pSpan()[0]-1, stem.sequence3pSpan()[1]):
 			self._componentArray[i] = stem.label()
 
 	'''
@@ -881,7 +877,7 @@ class StructureType:
 	Return Type: None
 	'''
 	def _addBulgeToComponentArray(self, bulge):
-		for i in range(bulge.sequenceILoc()[0]-1, bulge.sequenceILoc()[1]):
+		for i in range(bulge.span()[0]-1, bulge.span()[1]):
 			self._componentArray[i] = bulge.label()
 
 	'''
@@ -891,7 +887,7 @@ class StructureType:
 	Return Type: None
 	'''
 	def _addHairpinToComponentArray(self, hairpin):
-		for i in range(hairpin.sequenceILoc()[0]-1, hairpin.sequenceILoc()[1]):
+		for i in range(hairpin.span()[0]-1, hairpin.span()[1]):
 			self._componentArray[i] = hairpin.label()
 
 	'''
@@ -901,7 +897,7 @@ class StructureType:
 	Return Type: None
 	'''
 	def _addEndToComponentArray(self, end):
-		for i in range(end.sequenceILoc()[0]-1, end.sequenceILoc()[1],):
+		for i in range(end.span()[0]-1, end.span()[1],):
 			self._componentArray[i] = end.label()
 
 	'''
@@ -911,7 +907,7 @@ class StructureType:
 	Return Type:
 	'''
 	def _addInnerLoopToComponentArray(self, innerLoop):
-		for pair in innerLoop.sequenceILoc():
+		for pair in innerLoop.span():
 			for i in range(pair[0]-1, pair[1]):
 				self._componentArray[i] = innerLoop.label()
 
@@ -922,7 +918,7 @@ class StructureType:
 	Return Type: None
 	'''
 	def _addExternalLoopToComponentArray(self, el):
-		for i in range(el.sequenceILoc()[0]-1, el.sequenceILoc()[1]):
+		for i in range(el.span()[0]-1, el.span()[1]):
 			self._componentArray[i] = el.label()
 
 	'''
@@ -932,7 +928,7 @@ class StructureType:
 	Return Type: None
 	'''
 	def _addMultiloopToComponentArray(self, multiloop):
-		for i in range(multiloop.sequenceILoc()[0]-1, multiloop.sequenceILoc()[1]):
+		for i in range(multiloop.span()[0]-1, multiloop.span()[1]):
 			self._componentArray[i] = multiloop.label() + '.' + multiloop.subunitLabel()
 
 	'''
@@ -1209,25 +1205,6 @@ class StructureType:
 			return None
 
 
-	'''
-	Function Name: bulgeNeighbors(bulgeLabel)
-	Description: Function returns the labels of the secondary structures that are directly adjacent to
-	the bulge with the given label
-	Parameters: (bulgeLabel) - str - label for bulge of interest
-	Return Type: tupel(str, str)
-	'''
-	'''
-	def neighbors(self, bulgeLabel):
-		bulgeILoc = self.getBulgeByLabel(bulgeLabel).sequenceILoc() #get tuple with bulge start and stop
-
-		# bulgeILoc = (start, stop)
-		# in component array bulge will be at (start-1, stop-1) because of 0 indexing
-		# so adjacent features will be at (start-2, stop)
-		return (self._componentArray[bulgeILoc[0]-2], self._componentArray[bulgeILoc[1]])
-	'''
-
-
-
 ###########################
 ###### Inner Loops ########
 ###########################
@@ -1301,7 +1278,7 @@ class StructureType:
 				{
 					'label' : ,
 					'Sequence' : ,
-					'SequenceILoc' :
+					'span' :
 				}
 	'''
 	def getInnerLoopSubunit(self, parentLabel, subunitLabel):
@@ -1316,14 +1293,14 @@ class StructureType:
 			subunit = {
 				'label' : f'{innerLoop._parentLabel}.1',
 				'Sequence' : innerLoop._5pSequence,
-				'SequenceILoc' : innerLoop._5pSequenceILoc,
+				'span' : innerLoop._span5p,
 			}
 			return subunit
 		elif subunitLabel == '2':
 			subunit = {
 				'label' : f'{innerLoop._parentLabel}.2',
 				'Sequence' : innerLoop._3pSequence,
-				'SequenceILoc' : innerLoop._3pSequenceILoc,
+				'span' : innerLoop._span5p,
 			}
 			return subunit
 		else:
@@ -1649,8 +1626,8 @@ class StructureType:
 		adjacentFeatures = [] #list to store the adjacent RNA features
 
 		if label in self._componentArray: #check if the feature is valid
-			featureILoc = self.getComponentByLabel(label).sequenceILoc() #get index locations of the feature
-			for loc in featureILoc: #iterate through locations(featureILoc is a tuple): some values will be tuples others will be interger values
+			featureSpan = self.getComponentByLabel(label).span() #get index locations of the feature
+			for loc in featureSpan: #iterate through locations(featureSpan is a tuple): some values will be tuples others will be interger values
 				pass #need two cases: for tuple and for integer values
 		else: #otherwise print error and return None
 			print('The label provided does not identify a feature of this molecule.')
@@ -1742,15 +1719,15 @@ class Stem:
 		return self._sequenceLen
 
 	#function returns a tuple containing two tuples that contain start and stop indices for the 5' and 3' sequence of the stem
-	def sequenceILoc(self):
+	def span(self):
 		return (self._seq_5p_index, self._seq_3p_index)
 
 	#function returns the start and stop indices of the 5' portion of the stem in a tuple. Ex: (start, stop)
-	def sequence5pILoc(self):
+	def sequence5pSpan(self):
 		return self._seq_5p_index
 
 	#function returns the start and stop indices of the 3' portion of the stem in a tuple. Ex: (start, stop)
-	def sequence3pILoc(self):
+	def sequence3pSpan(self):
 		return self._seq_3p_index
 
  	#function calculates the folding free energy change for the stem
@@ -1792,7 +1769,7 @@ Member variable -- data type -- description:
 self._label -- string -- the label for the hairpin as defined by the structure type file.
 self._sequence -- string -- the RNA sequence for the hairpin.
 self._sequenceLen -- Int -- the length of the hairpin as measured in number of nucleotides.
-self._sequenceILoc -- (int, int) -- tuple containing the integer start and stop indices
+self._span -- (int, int) -- tuple containing the integer start and stop indices
 	for the hairpin.
 self._closingPair -- (string, string) -- tuple containing two single character strings. The first character
 	corresponds to the 5' base in the closing pair. The second character is the 3' base in the closing pair.
@@ -1818,9 +1795,9 @@ class Hairpin:
 		self._label = label
 		self._sequence = seq
 		self._sequenceLen = len(seq)
-		self._sequenceILoc = seq_index
+		self._span = seq_index
 		self._closingPair = closing_pair
-		self._closingPairILoc = closing_index
+		self._closingPairSpan = closing_index
 		self._pk = pk
 
 	#define string representation of object
@@ -1840,16 +1817,16 @@ class Hairpin:
 		return self._sequenceLen
 
 	#function returns the start and stop indices of the hairpin as a tuple. Ex: (start, stop)
-	def sequenceILoc(self):
-		return self._sequenceILoc
+	def span(self):
+		return self._span
 
 	#function returns a tuple that contains the closing pair for the hairpin. Ex: (5' closing base, 3' closing base)
 	def closingPair(self):
 		return self._closingPair
 
 	#Function returns the index locations of the closing pair bases as a tuple. Ex: (5' closing index, 3' closing index)
-	def closingPairILoc(self):
-		return self._closingPairILoc
+	def closingPairSpan(self):
+		return self._closingPairSpan
 
 	#function returns the pseadoknot label for the hairpin if it exists
 	def hairpinPK(self):
@@ -1901,18 +1878,18 @@ Member Variable -- Data Type -- Description:
 self._label -- string -- The label for the bulge as defined by the structure type file.
 self._sequence -- string -- The RNA sequence for the bulge.
 self._sequenceLen -- Int -- The length of the bulge as measured in nucleotides.
-self._sequenceILoc -- (int, int) -- Tuple containing the integer start and stop indices
+self._span -- (int, int) -- Tuple containing the integer start and stop indices
 	for the RNA sequene that defines the bulge.
 self._closingPair5p -- (string, string) -- Tuple containing 2 single character strings. The
 	first string the the 5' base in 5' closing pair for the bule. The second character is the
 	3' base in the 5' closing pair.
-self._closingPair5pILoc -- (int, int) -- Tuple containing 2 integers. The first integer
+self._closingPair5pSpan -- (int, int) -- Tuple containing 2 integers. The first integer
 	is the index of the 5' base in 5' closing pair for the bule. The second integer is the
 	index of the 3' base in the 5' closing pair
 self._closingPair3p -- (string, string) -- Tuple containing 2 single character strings. The
 	first string the the 5' base in 3' closing pair for the bule. The second character is the
 	3' base in the 3' closing pair.
-self._closingPair3pILoc -- (int, int) -- Tuple containing 2 integers. The first integer
+self._closingPair3pSpan -- (int, int) -- Tuple containing 2 integers. The first integer
 	is the index of the 5' base in 3' closing pair for the bule. The second integer is the
 	index of the 3' base in the 3' closing pair
 self._pk -- int -- ???
@@ -1931,15 +1908,15 @@ self._pk -- int -- ???
 '''
 class Bulge:
 	# __init__ method for bulge object
-	def __init__(self, label, seq, seq_index, closingPair5, closingPair5ILoc, closingPair3, closingPair3ILoc, pk):
+	def __init__(self, label, seq, seq_index, closingPair5, closingPair5Span, closingPair3, closingPair3Span, pk):
 		self._label = label
 		self._sequence = seq
 		self._sequenceLen = len(seq)
-		self._sequenceILoc = seq_index
+		self._span = seq_index
 		self._closingPair5p = closingPair5
-		self._closingPair5pILoc = closingPair5ILoc
+		self._closingPair5pSpan = closingPair5Span
 		self._closingPair3p = closingPair3
-		self._closingPair3pILoc = closingPair3ILoc
+		self._closingPair3pSpan = closingPair3Span
 		self._pk = pk
 
 	#defines string representation for object
@@ -1955,8 +1932,8 @@ class Bulge:
 		return self._sequence
 
 	#Function returns the start and stop indices of the bulge as a tuple. Ex: (start, stop)
-	def sequenceILoc(self):
-		return self._sequenceILoc
+	def span(self):
+		return self._span
 
 	#Function returns the length of the bulge
 	def sequenceLen(self):
@@ -1967,16 +1944,16 @@ class Bulge:
 		return self._closingPair5p
 
 	#Function returns a tuple containg the indices of the 5' closing pair for the bulge
-	def closingPair5pILoc(self):
-		return self._closingPair5pILoc
+	def closingPair5pSpan(self):
+		return self._closingPair5pSpan
 
 	#Function returns a tuple containg the 3' closing pair for the bulge
 	def closingPair3p(self):
 		return self._closingPair3p
 
 	#Function returns a tuple containg the indices of the 3' closing pair for the bulge
-	def closingPair3pILoc(self):
-		return self._closingPair3pILoc
+	def closingPair3pSpan(self):
+		return self._closingPair3pSpan
 
 	#function calculates the folding free energy change for the bulge
 	def energy(self):
@@ -1989,7 +1966,10 @@ class Bulge:
 
 			#get base pair stack
 			#base pair stack = the stack of the closing base pairs as if the bulge was not present
-			basePairStack = StackingEnergies[self._closingPair5p][self._closingPair3p]
+			try:
+				basePairStack = StackingEnergies[self._closingPair5p][self._closingPair3p]
+			except KeyError:
+				basePairStack = 0
 
 			return BulgeInit[1] + specialC + basePairStack
 
@@ -2012,24 +1992,24 @@ self._3pLabel -- string -- label for the 3' inner loop subcomponent
 self._5pLoop -- string -- sequence that defines the 5' inner loop subcomponent
 self._3pLoop -- string -- sequence that defines the 3' inner loop subcomponent
 self._loopsLen -- tuple(int, int) -- tuple containing the integer value lengths for the 5' and 3' inner loop subcomponents
-self._5pLoopILoc -- tuple(int, int) -- tuple containing the integer start and stop locations for the 5' inner loop subcomponent
-self._3pLoopILoc -- tuple(int, int) -- tuple containing the integer start and stop locations for the 3' inner loop subcomponent
+self._5pLoopSpan -- tuple(int, int) -- tuple containing the integer start and stop locations for the 5' inner loop subcomponent
+self._3pLoopSpan -- tuple(int, int) -- tuple containing the integer start and stop locations for the 3' inner loop subcomponent
 self._closingPairs -- tuple((string, string), (string, string)) -- tuple with two nested tuples containing the closing pairs for the inner loop
-self._closingPairsILoc -- tuple((int, int), (int, int)) -- tuple with two nested tuples containing the index locations of the closing pairs for the inner loop
+self._closingPairsSpan -- tuple((int, int), (int, int)) -- tuple with two nested tuples containing the index locations of the closing pairs for the inner loop
 '''
 class InnerLoop:
 	# __init__ method for InnerLoop object
-	def __init__(self, pLabel, label5p, label3p,  loop5p, loop3p, loop5pILoc, loop3pILoc, closingPairs, closingPairsILoc):
+	def __init__(self, pLabel, label5p, label3p,  loop5p, loop3p, loop5pSpan, loop3pSpan, closingPairs, closingPairsSpan):
 		self._parentLabel = pLabel
 		self._5pLabel = label5p
 		self._3pLabel = label3p
 		self._5pLoop = loop5p
 		self._3pLoop = loop3p
 		self._loopsLen = (len(loop5p), len(loop3p))
-		self._5pLoopILoc = loop5pILoc
-		self._3pLoopILoc = loop3pILoc
+		self._span5p = loop5pSpan
+		self._span3p = loop3pSpan
 		self._closingPairs = closingPairs
-		self._closingPairsILoc = closingPairsILoc
+		self._closingPairsSpan = closingPairsSpan
 
 	#defines the string representation of the object
 	def __str__(self):
@@ -2052,96 +2032,115 @@ class InnerLoop:
 		return self._loopsLen
 
 	#Function returns a tuple that contains two tuples containing the integer start and stop positions of the 5' and 3' inner loop components
-	def sequenceILoc(self):
-		return (self._5pLoopILoc, self._3pLoopILoc)
+	def span(self):
+		return (self._span5p, self._span3p)
 
 	#Function returns a tuple that contains two tuples containing the closing base pairs of the inner loop components
 	def closingPairs(self):
 		return self._closingPairs
 
 	#Function returns a tuple that contains two tuples containing the index locations of the closing base pairs of the inner loop components
-	def closingPairsILoc(self):
-		return self._closingPairsILoc
+	def closingPairsSpan(self):
+		return self._closingPairsSpan
 
-	#Function to calculate the free energy for the inner loop
+	#Function to calculate the energy for inner loops whose energies are not stored in the imported dictionary
+	def calcEnergy(self):
+		#get total length of inner loop for initiation parameter calculation
+		loopLength = len(self._5pLoop) + len(self._3pLoop)
+		if loopLength in InternalLoopInit:#try to get initiation energy from dictionary
+			ilInit = InternalLoopInit[loopLength]
+		else: #otherwise calculate value
+			ilInit = InternalLoopInit[6] + (1.08 * np.log(float(loopLength)/6.0))
+
+		#asymmetry penalty
+		asym = abs(len(self._5pLoop) - len(self._3pLoop)) * INNER_LOOP_ASYMMETRY_PENALTY
+
+		#AU / GU Closure penalty
+		closingPenalty = 0
+		endPenaltyPairs = [('A', 'U'), ('G', 'U'), ('U', 'A'), ('U', 'G')] #closing pairs that result in end penalty
+		closingPair5p, closingPair3p = self.closingPairs() #get the closing pairs for the inner loop
+		if closingPair5p in endPenaltyPairs: #check for penalty condition in 5' closing pair
+			closingPenalty += 0.7
+		if closingPair3p in endPenaltyPairs: #check for penalty in 3' closing pair
+			closingPenalty += 0.7
+
+		#Check for mismatches for base pairs on either end of the inner loop
+		mismatch = 0
+		#1 x (n-1) Inner Loops
+		if (len(self._5pLoop) == 1 and len(self._3pLoop) == loopLength-1) or (len(self._5pLoop) == loopLength-1 and len(self._3pLoop) == 1):
+			pass #Mismatch energy is 0, so we dont need to do anything
+		#2x3 Inner Loop mismatches
+		elif (len(self._5pLoop) == 2 and len(self._3pLoop) == 3):
+			loop1, loop2 = self.loops() #get both loops
+			mismatch1 = (loop1[0], loop2[-1]) #get 1st mismatch
+			mismatch2 = (loop1[-1], loop2[0]) #get 2nd mismatch
+
+			#check for mismatch condition between 5' closing pair and first mismatch
+			if (self._closingPairs[0], mismatch1) in InnerLoopMismatches_2x3:
+				mismatch += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch1)]
+
+			#check for mismatch condition between 3'closing pair and mismatch 2
+			if (self._closingPairs[1], mismatch2) in InnerLoopMismatches_2x3:
+				mismatch += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch2)]
+		#3x2 inner loop mismatches
+		elif (len(self._5pLoop) == 2 and len(self._3pLoop) == 3):
+			loop1, loop2 = self.loops()
+			mismatch1 = (loop2[0], loop1[-1])
+			mismatch2 = (loop2[-1], loop1[0])
+
+			#check for mismatch condition between 5' closing pair and first mismatch
+			if (self._closingPairs[0], mismatch1) in InnerLoopMismatches_2x3:
+				mismatch += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch1)]
+
+			#check for mismatch condition between 3'closing pair and mismatch 2
+			if (self._closingPairs[1], mismatch2) in InnerLoopMismatches_2x3:
+				mismatch += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch2)]
+		#other inner loops
+		else:
+			loop1, loop2 = self.loops() #get both loops
+			mismatch1 = (loop1[0], loop2[-1]) #get 1st mismatch
+			mismatch2 = (loop1[-1], loop2[0]) #get 2nd mismatch
+
+			#check for mismatch 1 for condition
+			if mismatch1 in OtherInnerLoopMismtaches:
+				mismatch += OtherInnerLoopMismtaches[mismatch1]
+
+			#check mismatch 2 for condition
+			if mismatch2 in OtherInnerLoopMismtaches:
+				mismatch += OtherInnerLoopMismtaches[mismatch2]
+
+		#sum energy components and return
+		return ilInit + asym + closingPenalty + mismatch
+
+
+
+	#Function to get the free energy for the inner loop object
 	def energy(self):
 		#check for 1x1 - value taken from imported dicitionary
 		if len(self._5pLoop) == 1 and len(self._3pLoop) == 1:
 			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop) in InnerLoop_1x1_Energies: #check if key in dictionary
 				loopEnergy = InnerLoop_1x1_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop)]
 				return loopEnergy
-			else: #otherwise return None
-				return None
+			else: #otherwise calculate energy
+				return self.calcEnergy()
 		#check for 1x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 1 and len(self._3pLoop) == 2:
-			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[0], self._3pLoop[1]) in InnerLoop_1x2_Energies: #check if key in dictionary
-				loopEnergy = InnerLoop_1x2_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[0], self._3pLoop[1])]
+			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[1], self._3pLoop[0]) in InnerLoop_1x2_Energies: #check if key in dictionary
+				loopEnergy = InnerLoop_1x2_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[1], self._3pLoop[0])]
 				return loopEnergy
-			else: #otherwise return None
-				return None
+			else: #otherwise calculate energy
+				return self.calcEnergy()
 		#check for 2x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 2:
 			loops = list(zip(list(self._5pLoop), list(self._3pLoop[::-1]))) #convert loop sequences to proper format for dictionary
 			if (self._closingPairs[0], self._closingPairs[1], loops[0], loops[1]) in InnerLoop_2x2_Energies: #check if key in dictionary
 				loopEnergy = InnerLoop_2x2_Energies[(self._closingPairs[0], self._closingPairs[1], loops[0], loops[1])]
 				return loopEnergy
-			else: #otherwise return None
-				return None
+			else: #otherwise calculate energy
+				return self.calcEnergy()
 		#Other cases need to be calculated
 		else:
-			#get total length of inner loop for initiation parameter calculation
-			loopLength = len(self._5pLoop) + len(self._3pLoop)
-			if loopLength in InternalLoopInit:#try to get initiation energy from dictionary
-				ilInit = InternalLoopInit[loopLength]
-			else: #otherwise calculate value
-				ilInit = InternalLoopInit[6] + (1.08 * np.log(float(loopLength)/6.0))
-
-			#asymmetry penalty
-			asym = abs(len(self._5pLoop) - len(self._3pLoop)) * INNER_LOOP_ASYMMETRY_PENALTY
-
-			#AU / GU Closure penalty
-			closingPenalty = 0
-			endPenaltyPairs = [('A', 'U'), ('G', 'U'), ('U', 'A'), ('U', 'G')] #closing pairs that result in end penalty
-			closingPair5p, closingPair3p = self.closingPairs() #get the closing pairs for the inner loop
-			if closingPair5p in endPenaltyPairs: #check for penalty condition in 5' closing pair
-				closingPenalty += 0.7
-			if closingPair3p in endPenaltyPairs: #check for penalty in 3' closing pair
-				closingPenalty += 0.7
-
-			#Check for mismatches for base pairs on either end of the inner loop
-			mismatch = 0
-			#1 x (n-1) Inner Loops
-			if (len(self._5pLoop) == 1 and len(self._3pLoop) == loopLength-1) or (len(self._5pLoop) == loopLength-1 and len(self._3pLoop) == 1):
-				pass #Mismatch energy is 0, so we dont need to do anything
-			#2x3 Inner Loops
-			elif (len(self._5pLoop) == 2 and len(self._3pLoop) == 3):
-				loop1, loop2 = self.loops() #get both loops
-				mismatch1 = (loop1[0], loop2[-1]) #get 1st mismatch
-				mismatch2 = (loop1[-1], loop2[0]) #get 2nd mismatch
-
-				#check for mismatch condition between 5' closing pair and first mismatch
-				if (self._closingPairs[0], mismatch1) in InnerLoopMismatches_2x3:
-					mismatch += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch1)]
-
-				#check for mismatch condition between 3'closing pair and mismatch 2
-				if (self._closingPairs[1], mismatch2) in InnerLoopMismatches_2x3:
-					mismatch += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch2)]
-			#other inner loops
-			else:
-				loop1, loop2 = self.loops() #get both loops
-				mismatch1 = (loop1[0], loop2[-1]) #get 1st mismatch
-				mismatch2 = (loop1[-1], loop2[0]) #get 2nd mismatch
-
-				#check for mismatch 1 for condition
-				if mismatch1 in OtherInnerLoopMismtaches:
-					mismatch += OtherInnerLoopMismtaches[mismatch1]
-
-				#check mismatch 2 for condition
-				if mismatch2 in OtherInnerLoopMismtaches:
-					mismatch += OtherInnerLoopMismtaches[mismatch2]
-
-			#sum energy components and return
-			return ilInit + asym + closingPenalty + mismatch
+			return self.calcEnergy()
 
 
 
@@ -2151,22 +2150,22 @@ External Loops
 Member variable -- data type -- description:
 self._label -- string -- label for the external loop secondary structure
 self._sequence -- string -- base sequence that defines the external loop
-self._sequenceILoc --tuple(int, int) -- tuple containing the integer start and stop locations for the external loop sequence
+self._span --tuple(int, int) -- tuple containing the integer start and stop locations for the external loop sequence
 self._closingPair5p -- tuple(string, string) -- tuple that contains the 5' closing base pair for the external loop
-self._closingPair5pILoc -- tuple(int, int) -- tuple containg the integer index locations for the 5' closing pair
+self._closingPair5pSpan -- tuple(int, int) -- tuple containg the integer index locations for the 5' closing pair
 self._closingPair3p -- tuple(string, string) -- tuple that contains the 3' closing base pair for the external loop
-self._closingPair3pILoc -- tuple(int, int) -- tuple containg the integer index locations for the 3' closing pair
+self._closingPair3pSpan -- tuple(int, int) -- tuple containg the integer index locations for the 3' closing pair
 '''
 class ExternalLoop:
 	#__init__() method for the external loop object
-	def __init__(self, label, seq, seqILoc, closingPair5p, closingPair5pILoc, closingPair3p, closingPair3pILoc):
+	def __init__(self, label, seq, seqSpan, closingPair5p, closingPair5pSpan, closingPair3p, closingPair3pSpan):
 		self._label = label
 		self._sequence = seq
-		self._sequenceILoc = seqILoc
+		self._span = seqSpan
 		self._closingPair5p = closingPair5p
-		self._closingPair5pILoc = closingPair5pILoc
+		self._closingPair5pSpan = closingPair5pSpan
 		self._closingPair3p = closingPair3p
-		self._closingPair3pILoc = closingPair3pILoc
+		self._closingPair3pSpan = closingPair3pSpan
 
 	#Defines the string representation of the external loop
 	def __str__(self):
@@ -2181,8 +2180,8 @@ class ExternalLoop:
 		return self._sequence
 
 	#Function returns a tuple containing the start and stop index locations for the external loop sequence
-	def sequenceILoc(self):
-		return self._sequenceILoc
+	def span(self):
+		return self._span
 
 
 '''
@@ -2191,14 +2190,14 @@ ENDS
 Member variable -- data type -- description:
 self._label -- string -- label for the end objects
 self._sequence -- string -- sequence that defines the end objects
-self._sequenceILoc -- tuple(int, int) -- tuple containing the integer start and stop locations for the end object
+self._span -- tuple(int, int) -- tuple containing the integer start and stop locations for the end object
 '''
 class End:
 	#__init__() method for end object
-	def __init__(self, label, seq, seqILoc):
+	def __init__(self, label, seq, seqSpan):
 		self._label = label
 		self._sequence = seq
-		self._sequenceILoc = seqILoc
+		self._span = seqSpan
 
 	#define string representation of end object
 	def __str__(self):
@@ -2213,8 +2212,8 @@ class End:
 		return self._sequence
 
 	#Function returns a tuple that contains the integer start and stop index locations for the end object
-	def sequenceILoc(self):
-		return self._sequenceILoc
+	def span(self):
+		return self._span
 
 
 '''
@@ -2223,15 +2222,15 @@ NON-CANONICAL BASE PAIRINGS
 Member variable -- data type -- description:
 self._label -- string -- label for the NCBP objects
 self._basePair -- tuple(string, string) -- tuple containing the base pairs that define the NCBP object
-self._basePairILoc -- tuple(int, int) -- tuple containing the integer locations of the NCBP
+self._basePairSpan -- tuple(int, int) -- tuple containing the integer locations of the NCBP
 self._parentUnit -- string -- label for the secondary structure that the NCBP is located in
 '''
 class NCBP:
 	#__init__() method for the NCBP object
-	def __init__(self, label, basePair, basePairILoc, loc):
+	def __init__(self, label, basePair, basePairSpan, loc):
 		self._label = label
 		self._basePair = basePair
-		self._basePairILoc = basePairILoc
+		self._basePairSpan = basePairSpan
 		self._parentUnit = loc
 
 	#Defines the string representation of the NCBP object
@@ -2243,12 +2242,12 @@ class NCBP:
 		return self._label
 
 	#Function returns a tuple containing the two base pairs that define the NCBP object
-	def basePairs(self):
+	def sequence(self):
 		return self._basePair
 
 	#Function returns a tuple containing the integer locations of the base pairs that define the NCBP
-	def basePairILoc(self):
-		return self._basePairILoc
+	def Span(self):
+		return self._basePairSpan
 
 	#Function returns a string the identifies the secondary structure that the NCBP occurs in
 	def parentUnit(self):
@@ -2260,15 +2259,15 @@ class NCBP:
 Mulitloops -- UNFINISHED
 '''
 class Multiloop:
-	def __init__(self, parentLabel, subunitLabel, sequence, sequenceILoc, closingPair5p, closingPair5pILoc, closingPair3p, closingPair3pILoc):
+	def __init__(self, parentLabel, subunitLabel, sequence, span, closingPair5p, closingPair5pSpan, closingPair3p, closingPair3pSpan):
 		self._parentLabel = parentLabel
 		self._subunitLabel = subunitLabel
 		self._sequence = sequence
-		self._sequenceILoc = sequenceILoc
+		self._span = span
 		self._closingPair5p = closingPair5p
-		self._closingPair5pILoc = closingPair5pILoc
+		self._closingPair5pSpan = closingPair5pSpan
 		self._closingPair3p = closingPair3p
-		self._closingPair3pILoc = closingPair3pILoc
+		self._closingPair3pSpan = closingPair3pSpan
 
 	def __str__(self):
 		return f'Multiloop: {self._parentLabel}.{self._subunitLabel}'
@@ -2282,8 +2281,8 @@ class Multiloop:
 	def sequence(self):
 		return self._sequence
 
-	def sequenceILoc(self):
-		return self._sequenceILoc
+	def span(self):
+		return self._span
 
 
 
