@@ -2,11 +2,13 @@
 Filename: StructureTypeComponents.py
 Author: Michael Hathaway
 
-Description:
+Description: The StructureTypeComponents module defines individual classes for each of the secondary structures defined in the Structure
+Type file. These classes are: Stem, Bulge, Hairpin, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, and NCBP.
 '''
 
 ## Module Imports ##
 import numpy as np
+import logging
 
 ## Free Energy Parameter Imports ##
 from TurnerParameters.parameters.LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit #initiation parameters for internal loops, bulges, and hairpins
@@ -41,7 +43,8 @@ HAIRPIN_C3 = 1.5
 HAIRPIN_C_LOOP_A = 0.3
 HAIRPIN_C_LOOP_B = 1.6
 
-
+#set logging configuration
+logging.basicConfig(filename='StructureTypeComponents.log', level=logging.WARNING, filemode='w', format='%(process)d - %(levelname)s - %(message)s')
 
 
 '''
@@ -71,12 +74,12 @@ self._seq_3p_index -- (int, int) -- tuple containing the integer value start and
 '''
 class Stem:
 	# __init__ method for stem object
-	def __init__(self, label, seq_5p, seq_3p, seq_5p_index, seq_3p_index):
+	def __init__(self, label="", seq_5p="", seq_3p="", seq_5p_index=-1, seq_3p_index=-1):
 		self._label = label #sequence label
 		self._seq_5p = seq_5p #5' portion of stem
 		self._seq_3p = seq_3p #3' portion of stem
 		self._sequence = list(zip(list(self._seq_5p), list(self._seq_3p[::-1])))
-		self._sequenceLen = len(seq_5p) #sequence length
+		self._sequenceLen = (len(seq_5p) + len(seq_3p)) // 2 #sequence length
 		self._seq_5p_index = seq_5p_index #tuple containing start and stop indices of 5' prime portion of stem
 		self._seq_3p_index = seq_3p_index #tuple containing start and stop indices of 3' prime portion of stem
 
@@ -155,6 +158,7 @@ class Stem:
 			try:
 				stack += StackingEnergies[seq[i]][seq[i+1]]
 			except KeyError:
+				logging.warning(f'In energy() function for Stem: {self._label}, Stacking energy not found for {seq[i]} and {seq[i+1]}.')
 				continue
 
 		return INTERMOLECULAR_INIT + symmetry + endPenalty + stack
@@ -193,7 +197,7 @@ self._pk -- Int -- ???
 '''
 class Hairpin:
 	# __init__ method for stem object
-	def __init__(self, label, seq, seq_index, closing_pair, closing_index, pk):
+	def __init__(self, label="", seq="", seq_index=(-1, -1), closing_pair=('', ''), closing_index=(-1, -1), pk=None):
 		self._label = label
 		self._sequence = seq
 		self._sequenceLen = len(seq)
@@ -247,9 +251,9 @@ class Hairpin:
 	#function to calculate folding free energy of hairpin
 	def energy(self):
 		#get hairpin initiation term
-		try: #try to get from dictionary
+		if self._sequenceLen in HairpinInit: #try to get from dictionary
 			init = HairpinInit[self._sequenceLen]
-		except KeyError: #otherwise calculate
+		else: #otherwise calculate
 			init = HairpinInit[9] + (1.75 * R * T * np.log(float(self._sequenceLen/9.0)))
 
 		#get terminal mismatch parameter
@@ -393,14 +397,15 @@ class Bulge:
 			try:
 				basePairStack = StackingEnergies[self._closingPair5p][self._closingPair3p]
 			except KeyError:
+				logging.warning(f'In energy() function for Bulge: {self._label}, No base pair stack found for {self._closingPair5p} and {self._closingPair3p}. Base Pair stack set to 0.')
 				basePairStack = 0
 
 			return BulgeInit[1] + specialC + basePairStack
 
 		else: #bulge of length > 1
-			try: #try to get value from dictionary
+			if self._sequenceLen in BulgeInit: #try to get value from dictionary
 				return BulgeInit[self._sequenceLen]
-			except KeyError: #otherwise calculate
+			else: #otherwise calculate
 				return BulgeInit[6] + (1.75 * R * T * np.log(float(self._sequenceLen/6.0)))
 
 
@@ -459,7 +464,7 @@ class InnerLoop:
 			return (self._5pLoop, self._3pLoop)
 
 		if loop5p is not None: self._5pLoop = loop5p
-		if loop3p is not None: self._3pLoop = loop3p 
+		if loop3p is not None: self._3pLoop = loop3p
 		self._updateLoopLen()
 
 
@@ -479,7 +484,7 @@ class InnerLoop:
 	def closingPairsSpan(self):
 		return self._closingPairsSpan
 
-	#Function to calculate the energy for inner loops whose energies are not stored in the imported dictionary
+	#Function to calculate the energy for inner loops whose energies are not stored in the imported dictionaries
 	def calcEnergy(self):
 		#get total length of inner loop for initiation parameter calculation
 		loopLength = len(self._5pLoop) + len(self._3pLoop)
@@ -501,71 +506,85 @@ class InnerLoop:
 			closingPenalty += 0.7
 
 		#Check for mismatches for base pairs on either end of the inner loop
-		mismatch = 0
+		mismatchEnergy = 0
 		#1 x (n-1) Inner Loops
 		if (len(self._5pLoop) == 1 and len(self._3pLoop) == loopLength-1) or (len(self._5pLoop) == loopLength-1 and len(self._3pLoop) == 1):
 			pass #Mismatch energy is 0, so we dont need to do anything
 		#2x3 Inner Loop mismatches
 		elif (len(self._5pLoop) == 2 and len(self._3pLoop) == 3):
 			loop1, loop2 = self.loops() #get both loops
-			mismatch1 = (loop1[0], loop2[-1]) #get 1st mismatch
-			mismatch2 = (loop1[-1], loop2[0]) #get 2nd mismatch
+			mismatch5p = (loop1[0], loop2[-1]) #get 1st mismatch
+			mismatch3p = (loop2[0], loop1[-1]) #get 2nd mismatch
 
 			#check for mismatch condition between 5' closing pair and first mismatch
-			if (self._closingPairs[0], mismatch1) in InnerLoopMismatches_2x3:
-				mismatch += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch1)]
+			if (self._closingPairs[0], mismatch5p) in InnerLoopMismatches_2x3:
+				mismatchEnergy += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
 
 			#check for mismatch condition between 3'closing pair and mismatch 2
-			if (self._closingPairs[1], mismatch2) in InnerLoopMismatches_2x3:
-				mismatch += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch2)]
+			if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch3p) in InnerLoopMismatches_2x3:
+				mismatchEnergy += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
 		#3x2 inner loop mismatches
-		elif (len(self._5pLoop) == 2 and len(self._3pLoop) == 3):
+		elif (len(self._5pLoop) == 3 and len(self._3pLoop) == 2):
 			loop1, loop2 = self.loops()
-			mismatch1 = (loop2[0], loop1[-1])
-			mismatch2 = (loop2[-1], loop1[0])
+			mismatch5p = (loop2[0], loop1[-1])
+			mismatch3p = (loop1[0], loop2[-1])
 
 			#check for mismatch condition between 5' closing pair and first mismatch
-			if (self._closingPairs[0], mismatch1) in InnerLoopMismatches_2x3:
-				mismatch += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch1)]
+			if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch5p) in InnerLoopMismatches_2x3:
+				mismatchEnergy += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
 
 			#check for mismatch condition between 3'closing pair and mismatch 2
-			if (self._closingPairs[1], mismatch2) in InnerLoopMismatches_2x3:
-				mismatch += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch2)]
+			if ((self._closingPairs[0][1], self._closingPairs[0][0]), mismatch3p) in InnerLoopMismatches_2x3:
+				mismatchEnergy += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
 		#other inner loops
 		else:
 			loop1, loop2 = self.loops() #get both loops
-			mismatch1 = (loop1[0], loop2[-1]) #get 1st mismatch
-			mismatch2 = (loop1[-1], loop2[0]) #get 2nd mismatch
+			mismatch5p = (loop1[0], loop2[-1]) #get 1st mismatch
+			mismatch3p = (loop1[-1], loop2[0]) #get 2nd mismatch
 
 			#check for mismatch 1 for condition
-			if mismatch1 in OtherInnerLoopMismtaches:
-				mismatch += OtherInnerLoopMismtaches[mismatch1]
+			if mismatch5p in OtherInnerLoopMismtaches:
+				mismatchEnergy += OtherInnerLoopMismtaches[mismatch5p]
 
 			#check mismatch 2 for condition
-			if mismatch2 in OtherInnerLoopMismtaches:
-				mismatch += OtherInnerLoopMismtaches[mismatch2]
+			if mismatch3p in OtherInnerLoopMismtaches:
+				mismatchEnergy += OtherInnerLoopMismtaches[mismatch3p]
 
 		#sum energy components and return
-		return ilInit + asym + closingPenalty + mismatch
+		return ilInit + asym + closingPenalty + mismatchEnergy
 
 
 
 	#Function to get the free energy for the inner loop object
 	def energy(self):
+
 		#check for 1x1 - value taken from imported dicitionary
 		if len(self._5pLoop) == 1 and len(self._3pLoop) == 1:
 			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop) in InnerLoop_1x1_Energies: #check if key in dictionary
 				loopEnergy = InnerLoop_1x1_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop)]
 				return loopEnergy
 			else: #otherwise calculate energy
+				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using calcEnergy() function.')
 				return self.calcEnergy()
+
 		#check for 1x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 1 and len(self._3pLoop) == 2:
 			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[1], self._3pLoop[0]) in InnerLoop_1x2_Energies: #check if key in dictionary
 				loopEnergy = InnerLoop_1x2_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[1], self._3pLoop[0])]
 				return loopEnergy
 			else: #otherwise calculate energy
+				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using calcEnergy() function.')
 				return self.calcEnergy()
+
+		#check for 2x1 case - value taken from dicitonary
+		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 1:
+			if ((self._closingPairs[1][1], self._closingPairs[1][0]), (self._closingPairs[0][1], self._closingPairs[0][0]), self._3pLoop, self._5pLoop[1], self._5pLoop[0]) in InnerLoop_1x2_Energies: #check if key in dictionary
+				loopEnergy = InnerLoop_1x2_Energies[((self._closingPairs[1][1], self._closingPairs[1][0]), (self._closingPairs[0][1], self._closingPairs[0][0]), self._3pLoop, self._5pLoop[1], self._5pLoop[0])]
+				return loopEnergy
+			else: #otherwise calculate energy
+				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using calcEnergy() function.')
+				return self.calcEnergy()
+
 		#check for 2x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 2:
 			loops = list(zip(list(self._5pLoop), list(self._3pLoop[::-1]))) #convert loop sequences to proper format for dictionary
@@ -573,7 +592,9 @@ class InnerLoop:
 				loopEnergy = InnerLoop_2x2_Energies[(self._closingPairs[0], self._closingPairs[1], loops[0], loops[1])]
 				return loopEnergy
 			else: #otherwise calculate energy
+				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using calcEnergy() function.')
 				return self.calcEnergy()
+
 		#Other cases need to be calculated
 		else:
 			return self.calcEnergy()

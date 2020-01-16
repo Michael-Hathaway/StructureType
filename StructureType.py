@@ -10,10 +10,13 @@ RNA structure type files in the python programming language.
 ## Module Imports ##
 import numpy as np
 import re
+import logging
 
 ## Structure Type Component Imports ##
 from StructureTypeComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
 
+#set logging configuration
+logging.basicConfig(filename='StructureType.log', level=logging.WARNING, filemode='w', format='%(process)d - %(levelname)s - %(message)s')
 
 '''
 ## About the structureType object ##
@@ -1587,22 +1590,25 @@ class StructureType:
 	Function Name: neighbors(label)
 	Description: Function to get the secondary structures adjacent to the feature of interest.
 	Parameters: (label) - str - label for the feature of interest
+				(object) - bool - optional argument that causes the function to return the actual StructureTypeComponent objects instead of just the object label
 	Return Type: Returns a tuple containing the labels for the adjacent features in order of 5' to 3' locations
 	'''
-	def neighbors(self, label):
+	def neighbors(self, label, object=False):
 		adjacentFeatures = [] #list to store the adjacent RNA features
 
 		if label in self._componentArray: #check if the feature is valid
 			span = self.getComponentByLabel(label).span() #get index locations of the feature
 			if all(type(i) is int for i in span): #tuple only containes integer index locations(example: bulge location)
-				adjacentFeatures.append(self._componentArray[span[0]-2])
-				adjacentFeatures.append(self._componentArray[span[1]])
+				adjacentFeatures.append(self._componentArray[span[0]-2] if not object else self.getComponentByLabel(self._componentArray[span[0]-2]))
+				adjacentFeatures.append(self._componentArray[span[1]] if not object else self.getComponentByLabel(self._componentArray[span[1]]))
+
 				return tuple(adjacentFeatures)
 			else: #tuple containes other tuples within it(example: innerLoop locations)
-				adjacentFeatures.append(self._componentArray[span[0][0]-2])
-				adjacentFeatures.append(self._componentArray[span[0][1]])
-				adjacentFeatures.append(self._componentArray[span[1][0]-2])
-				adjacentFeatures.append(self._componentArray[span[1][1]])
+				adjacentFeatures.append(self._componentArray[span[0][0]-2] if not object else self.getComponentByLabel(self._componentArray[span[0][0]-2]))
+				adjacentFeatures.append(self._componentArray[span[0][1]] if not object else self.getComponentByLabel(self._componentArray[span[0][1]]))
+				adjacentFeatures.append(self._componentArray[span[1][0]-2] if not object else self.getComponentByLabel(self._componentArray[span[1][0]-2]))
+				adjacentFeatures.append(self._componentArray[span[1][1]] if not object else self.getComponentByLabel(self._componentArray[span[1][1]]))
+
 				return tuple(adjacentFeatures)
 		else: #otherwise print error and return None
 			print('The label provided does not identify a feature of this molecule.')
