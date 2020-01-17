@@ -94,14 +94,14 @@ class Stem:
 
 	#function returns the label for the stem object. Also allows for user to change label of stems
 	def label(self, newLabel=None):
-		if newLabel is not None:
+		if newLabel :
 			self._label = newLabel
 		else:
 			return self._label
 
 	#function returns the 5' portion of the stem sequence
 	def sequence5p(self, newSequence=None):
-		if (newSequence is not None) and (len(newSequence) == self._sequenceLen): #if new sequence is provided and it is the same length as the existing sequence
+		if (newSequence) and (len(newSequence) == self._sequenceLen): #if new sequence is provided and it is the same length as the existing sequence
 			self._seq_5p = newSequence
 			self._setSequence #reset the self._sequence variable
 		else:
@@ -109,7 +109,7 @@ class Stem:
 
 	#function returns the 3' portion of the stem sequence
 	def sequence3p(self, newSequence=None):
-		if (newSequence is not None) and (len(newSequence) == self._sequenceLen): #if new sequence is provided and it is the same length as the existing sequence
+		if (newSequence) and (len(newSequence) == self._sequenceLen): #if new sequence is provided and it is the same length as the existing sequence
 			self._seq_3p = newSequence
 			self._setSequence #reset the self._sequence variable
 		else:
@@ -212,14 +212,14 @@ class Hairpin:
 
 	#Function returns the label for the hairpin object. also allows user to define new label
 	def label(self, newLabel=None):
-		if newLabel is not None:
+		if newLabel:
 			self._label = newLabel
 		else:
 			return self._label
 
 	#Function returns the sequence that defines the hairpin structure. Also allows user to define new sequence
 	def sequence(self, newSequence=None):
-		if newSequence is not None:
+		if newSequence:
 			self._sequence = newSequence #set new sequence
 			self._sequenceLen = len(newSequence) #update sequence length
 		else:
@@ -235,7 +235,7 @@ class Hairpin:
 
 	#function returns a tuple that contains the closing pair for the hairpin. Ex: (5' closing base, 3' closing base). Also allows user to define new closing pair
 	def closingPair(self, newClose=None):
-		if newClose is not None:
+		if newClose:
 			self._closingPair = newClose
 		else:
 			return self._closingPair
@@ -341,14 +341,14 @@ class Bulge:
 
 	#Function returns the label for the bulge object. Also allows user to define new label
 	def label(self, newLabel=None):
-		if newLabel is not None:
+		if newLabel:
 			self._label = newLabel
 		else:
 			return self._label
 
 	#Function returns the sequence that defines the bulge structure. Also allows user to define new sequence
 	def sequence(self, newSequence=None):
-		if newSequence is not None:
+		if newSequence:
 			self._sequence = newSequence
 			self._sequenceLen = len(newSequence)
 		else:
@@ -364,7 +364,7 @@ class Bulge:
 
 	#Function returns a tuple containg the 5' closing pair for the bulge. Also allows user to define new closing pair
 	def closingPair5p(self, newClose=None):
-		if newClose is not None:
+		if newClose:
 			self._closingPair5p = newClose
 		else:
 			return self._closingPair5p
@@ -375,7 +375,7 @@ class Bulge:
 
 	#Function returns a tuple containg the 3' closing pair for the bulge. Also allows user to define new closing pair
 	def closingPair3p(self, newClose=None):
-		if newClose is not None:
+		if newClose:
 			self._closingPair3p = newClose
 		return self._closingPair3p
 
@@ -450,7 +450,7 @@ class InnerLoop:
 
 	#Function returns the parent label for the inner loop. Also allows user to set new label
 	def label(self, newLabel=None):
-		if newLabel is not None:
+		if newLabel:
 			self._parentLabel = newLabel
 		return self._parentLabel
 
@@ -463,8 +463,8 @@ class InnerLoop:
 		if loop5p is None and loop3p is None:
 			return (self._5pLoop, self._3pLoop)
 
-		if loop5p is not None: self._5pLoop = loop5p
-		if loop3p is not None: self._3pLoop = loop3p
+		if loop5p: self._5pLoop = loop5p
+		if loop3p: self._3pLoop = loop3p
 		self._updateLoopLen()
 
 

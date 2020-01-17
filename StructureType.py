@@ -927,7 +927,7 @@ class StructureType:
 	Parameters: None
 	Return Type: str
 	'''
-	def Name(self):
+	def name(self):
 		return self._name
 
 	'''
@@ -936,7 +936,7 @@ class StructureType:
 	Parameters: None
 	Return Type: int
 	'''
-	def Length(self):
+	def length(self):
 		return self._length
 
 	'''
@@ -945,7 +945,7 @@ class StructureType:
 	Parameters: None
 	Return Type: int
 	'''
-	def PageNum(self):
+	def pageNum(self):
 		return self._pageNum
 
 
@@ -960,7 +960,7 @@ class StructureType:
 	Parameters: None
 	Return Type: str
 	'''
-	def Sequence(self):
+	def sequence(self):
 		return self._sequence
 
 	'''
@@ -969,7 +969,7 @@ class StructureType:
 	Parameters: None
 	Return Type: str
 	'''
-	def DotBracket(self):
+	def dotBracket(self):
 		return self._DBNotation
 
 
@@ -979,7 +979,7 @@ class StructureType:
 	Parameters: None
 	Return Type: str
 	'''
-	def StructureArray(self):
+	def structureArray(self):
 		return self._structureArray
 
 
@@ -1020,13 +1020,17 @@ class StructureType:
 
 
 	'''
-	Function Name: stems()
-	Description: function to get all the stem objects in the StructureType object
-	Parameters: None
-	Return Type: list
+	Function Name: stems(label=None)
+	Description: function to get all the stem objects in the StructureType object. If label is provided the stem object
+	with the matching label is returned.
+	Parameters: (label) - str - the label for the stem being searched for.
+	Return Type: list or Stem object
 	'''
-	def stems(self):
-		return list(self._stems.values())
+	def stems(self, label=None):
+		if label:
+			return self._getStemByLabel(label)
+		else:
+			return list(self._stems.values())
 
 
 	'''
@@ -1045,7 +1049,7 @@ class StructureType:
 	Parameters: (stemLabel) - str - label for Stem to be accessed
 	Return Value: Stem object
 	'''
-	def getStemByLabel(self, stemLabel):
+	def _getStemByLabel(self, stemLabel):
 		try:
 			stem = self._stems[stemLabel]
 			return stem
@@ -1084,12 +1088,16 @@ class StructureType:
 
 	'''
 	Function Name: hairpins()
-	Description: Function to get all Hairpin objects in the StructureType object
+	Description: Function to get all Hairpin objects in the StructureType object. if label is provided, the Hairpin object with the
+	matching label is returned.
 	Parameters: None
 	Return Type: list
 	'''
-	def hairpins(self):
-		return list(self._hairpins.values())
+	def hairpins(self, label=None):
+		if label:
+			return self._getHairpinByLabel(label)
+		else:
+			return list(self._hairpins.values())
 
 
 	'''
@@ -1107,7 +1115,7 @@ class StructureType:
 	Parameters: (hairpinLabel) - str - label for hairpin to accessed
 	Return Type: Hairpin Object
 	'''
-	def getHairpinByLabel(self, hairpinLabel):
+	def _getHairpinByLabel(self, hairpinLabel):
 		try:
 			hairpin = self._hairpins[hairpinLabel]
 			return hairpin
@@ -1148,8 +1156,11 @@ class StructureType:
 	Parameters: None
 	Return Type: list
 	'''
-	def bulges(self):
-		return list(self._bulges.values())
+	def bulges(self, label=None):
+		if label:
+			return self._getBulgeByLabel(label)
+		else:
+			return list(self._bulges.values())
 
 	'''
 	Function Name: numBulges()
@@ -1166,7 +1177,7 @@ class StructureType:
 	Parameters: (bulgeLabel) - str - label for Bulge object to be accessed
 	Return Type: Bulge object
 	'''
-	def getBulgeByLabel(self, bulgeLabel):
+	def _getBulgeByLabel(self, bulgeLabel):
 		try:
 			bulge = self._bulges[bulgeLabel]
 			return bulge
@@ -1209,8 +1220,11 @@ class StructureType:
 	Parameters: None
 	Return Type: list
 	'''
-	def innerLoops(self):
-		return list(self._innerLoops.values())
+	def innerLoops(self, label=None):
+		if label:
+			return self._getInnerLoopByLabel(label)
+		else:
+			return list(self._innerLoops.values())
 
 
 	'''
@@ -1229,7 +1243,7 @@ class StructureType:
 	Parameters: (label) - str - the key value for the inner loop to be accessed
 	Return Type: tuple(InnerLoop object, InnerLoop object)
 	'''
-	def getInnerLoopByLabel(self, label):
+	def _getInnerLoopByLabel(self, label):
 		try:
 			innerLoop = self._innerLoops[label]
 			return innerLoop
@@ -1400,8 +1414,11 @@ class StructureType:
 	Parameters: None
 	Return Type: list
 	'''
-	def externalLoops(self):
-		return list(self._externalLoops.values())
+	def externalLoops(self, label=None):
+		if label:
+			return self._getExternalLoopByLabel(label)
+		else:
+			return list(self._externalLoops.values())
 
 	'''
 	Function Name: numExternalLoops()
@@ -1418,7 +1435,7 @@ class StructureType:
 	Parameters: (elLabel) - str - label for the ExternalLoop to be accessed
 	Return Type: ExternalLoop object
 	'''
-	def getExternalLoopByLabel(self, elLabel):
+	def _getExternalLoopByLabel(self, elLabel):
 		try:
 			el = self._externalLoops[elLabel]
 			return el
@@ -1459,8 +1476,11 @@ class StructureType:
 	Parameters: None
 	Return Type: list
 	'''
-	def NCBPs(self):
-		return list(self._ncbp.values())
+	def NCBPs(self, label=None):
+		if label:
+			return self._getNCBPByLabel(label)
+		else:
+			return list(self._ncbp.values())
 
 	'''
 	Function Name: numNCBPs()
@@ -1518,8 +1538,11 @@ class StructureType:
 	Parameters: None list
 	Return Type:
 	'''
-	def ends(self):
-		return list(self._ends.values())
+	def ends(self, label=None):
+		if label:
+			return self._getEndByLabel(label)
+		else:
+			return list(self._ends.values())
 
 	'''
 	Function Name: numEnds()
@@ -1551,7 +1574,7 @@ class StructureType:
 ################################
 
 	'''
-	Function Name: getComponentByLabel(label, subLabel=None)
+	Function Name: component(label, subLabel=None)
 	Description: More general form of get<secondarystructure>ByLabel(). Allows you to access a given
 	structure type component based on its label. Useful when using the componentArray because you may not know which
 	type of structure type component you will be accessing if you are(for example) looping through the entire array
@@ -1560,26 +1583,21 @@ class StructureType:
 				and it will not be used unless specified.
 	Return Type: returns a structureType Component
 	'''
-	def getComponentByLabel(self, label, subLabel=None):
+	def component(self, label):
 		if label[0] == 'S':
-			return self.getStemByLabel(label)
+			return self._getStemByLabel(label)
 		elif label[0] == 'H':
-			return self.getHairpinByLabel(label)
+			return self._getHairpinByLabel(label)
 		elif label[0] == 'B':
-			return self.getBulgeByLabel(label)
+			return self._getBulgeByLabel(label)
 		elif label[0] == 'X':
-			return self.getExternalLoopByLabel(label)
+			return self._getExternalLoopByLabel(label)
 		elif label[0] == 'E':
-			return self.getEndByLabel(label)
+			return self._getEndByLabel(label)
 		elif label[0] == 'N':
-			return self.getNCBPByLabel(label)
+			return self._getNCBPByLabel(label)
 		elif label[0] == 'I': #search is for innerloop
-			return self.getInnerLoopByLabel(label)
-		#need special block for handeling multiloops
-		elif label[0] == 'M':
-			parent = label[:-2]
-			subunit = label[-1]
-			return self.getMultiLoopSubunitByLabel(parent, subunit)
+			return self._getInnerLoopByLabel(label)
 		else:
 			#if label is not handled by any of these blocks
 			print(f'Label: {label} not found in StructureType object.')
@@ -1587,7 +1605,7 @@ class StructureType:
 
 
 	'''
-	Function Name: neighbors(label)
+	Function Name: neighbors(label, object=False)
 	Description: Function to get the secondary structures adjacent to the feature of interest.
 	Parameters: (label) - str - label for the feature of interest
 				(object) - bool - optional argument that causes the function to return the actual StructureTypeComponent objects instead of just the object label
@@ -1597,17 +1615,17 @@ class StructureType:
 		adjacentFeatures = [] #list to store the adjacent RNA features
 
 		if label in self._componentArray: #check if the feature is valid
-			span = self.getComponentByLabel(label).span() #get index locations of the feature
+			span = self.component(label).span() #get index locations of the feature
 			if all(type(i) is int for i in span): #tuple only containes integer index locations(example: bulge location)
-				adjacentFeatures.append(self._componentArray[span[0]-2] if not object else self.getComponentByLabel(self._componentArray[span[0]-2]))
-				adjacentFeatures.append(self._componentArray[span[1]] if not object else self.getComponentByLabel(self._componentArray[span[1]]))
+				adjacentFeatures.append(self._componentArray[span[0]-2] if not object else self.component(self._componentArray[span[0]-2]))
+				adjacentFeatures.append(self._componentArray[span[1]] if not object else self.component(self._componentArray[span[1]]))
 
 				return tuple(adjacentFeatures)
 			else: #tuple containes other tuples within it(example: innerLoop locations)
-				adjacentFeatures.append(self._componentArray[span[0][0]-2] if not object else self.getComponentByLabel(self._componentArray[span[0][0]-2]))
-				adjacentFeatures.append(self._componentArray[span[0][1]] if not object else self.getComponentByLabel(self._componentArray[span[0][1]]))
-				adjacentFeatures.append(self._componentArray[span[1][0]-2] if not object else self.getComponentByLabel(self._componentArray[span[1][0]-2]))
-				adjacentFeatures.append(self._componentArray[span[1][1]] if not object else self.getComponentByLabel(self._componentArray[span[1][1]]))
+				adjacentFeatures.append(self._componentArray[span[0][0]-2] if not object else self.component(self._componentArray[span[0][0]-2]))
+				adjacentFeatures.append(self._componentArray[span[0][1]] if not object else self.component(self._componentArray[span[0][1]]))
+				adjacentFeatures.append(self._componentArray[span[1][0]-2] if not object else self.component(self._componentArray[span[1][0]-2]))
+				adjacentFeatures.append(self._componentArray[span[1][1]] if not object else self.component(self._componentArray[span[1][1]]))
 
 				return tuple(adjacentFeatures)
 		else: #otherwise print error and return None
