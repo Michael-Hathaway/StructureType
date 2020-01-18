@@ -60,7 +60,7 @@ class StructureType:
 		self._ends = {}
 
 		'''
-		component Array
+		Component Array
 		The component array is a numpy array of the same length as the molecule where each index
 		contains the label for the secondary structure tha that index is a part of.
 		the component array is initialized as None. When the length of the molecule is

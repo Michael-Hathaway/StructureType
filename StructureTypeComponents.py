@@ -261,6 +261,7 @@ class Hairpin:
 		try:
 			terminalMismatch = StackTerminalMismatches[self._closingPair][firstMismatch]
 		except KeyError:
+			logging.warning(f'In energy() function for Hairping: {self._label}, terminal mismatch parameters for closing pair: {self._closingPair} and first mismatch: {firstMismatch} not found in Dictionary.')
 			terminalMismatch = 0
 
 		#UU/GA first mismatch bonus
