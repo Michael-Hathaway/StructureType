@@ -447,7 +447,7 @@ class InnerLoop:
 
 	#function to update loop lengths upon change
 	def _updateLoopLen(self):
-		pass
+		self._loopsLen = (len(loop5p), len(loop3p))
 
 	#Function returns the parent label for the inner loop. Also allows user to set new label
 	def label(self, newLabel=None):
@@ -485,19 +485,39 @@ class InnerLoop:
 	def closingPairsSpan(self):
 		return self._closingPairsSpan
 
-	#Function to calculate the energy for inner loops whose energies are not stored in the imported dictionaries
-	def calcEnergy(self):
+
+	'''
+	Function Name: _getInnerLoopInitEnergy(self)
+	Description: Internal method to get the initiation energy parameter for Inner Loop energy function
+	Parameters: None
+	Return Type: float
+	'''
+	def _getInnerLoopInitEnergy(self):
 		#get total length of inner loop for initiation parameter calculation
 		loopLength = len(self._5pLoop) + len(self._3pLoop)
 		if loopLength in InternalLoopInit:#try to get initiation energy from dictionary
-			ilInit = InternalLoopInit[loopLength]
+			return float(InternalLoopInit[loopLength])
 		else: #otherwise calculate value
-			ilInit = InternalLoopInit[6] + (1.08 * np.log(float(loopLength)/6.0))
+			return InternalLoopInit[6] + (1.08 * np.log(float(loopLength)/6.0))
 
-		#asymmetry penalty
-		asym = abs(len(self._5pLoop) - len(self._3pLoop)) * INNER_LOOP_ASYMMETRY_PENALTY
 
-		#AU / GU Closure penalty
+	'''
+	Function Name: _getInnerLoopAsymmetryEnergy(self)
+	Description: Internal method to get asymmetry penalty for inner loop energy function
+	Parameters: None
+	Return Type: float
+	'''
+	def _getInnerLoopAsymmetryEnergy(self):
+		return abs(len(self._5pLoop) - len(self._3pLoop)) * INNER_LOOP_ASYMMETRY_PENALTY
+
+
+	'''
+	Function Name: _getInnerLoopClosingPenalty(self)
+	Description: Internal method to get the AU/GU Closing penalty for InnerLoop energy function
+	Parameters: None
+	Return Type: float
+	'''
+	def _getInnerLoopClosingPenalty(self):
 		closingPenalty = 0
 		endPenaltyPairs = [('A', 'U'), ('G', 'U'), ('U', 'A'), ('U', 'G')] #closing pairs that result in end penalty
 		closingPair5p, closingPair3p = self.closingPairs() #get the closing pairs for the inner loop
@@ -506,57 +526,146 @@ class InnerLoop:
 		if closingPair3p in endPenaltyPairs: #check for penalty in 3' closing pair
 			closingPenalty += 0.7
 
+		return float(closingPenalty)
+
+
+	'''
+	Function Name: _getInnerLoopMismatchEnergy_3x2(self)
+	Description: Internal method to get the mismatch energy for a 3x2 InnerLoop
+	Parameters: None
+	Return Type: float
+	'''
+	def _getInnerLoopMismatchEnergy_3x2(self):
+		loop1, loop2 = self.loops()
+		mismatch5p = (loop2[0], loop1[-1])
+		mismatch3p = (loop1[0], loop2[-1])
+
+		mismatchEnergy_3x2 = 0
+		#check for mismatch condition between 5' closing pair and first mismatch
+		if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch5p) in InnerLoopMismatches_2x3:
+			mismatchEnergy_3x2 += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
+		else:
+			logging.warning(f'In energy() function for 3x2 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[1][1], self._closingPairs[1][0])} and the 5\' mismatch: {mismatch5p}.')
+			return float('inf')
+
+		#check for mismatch condition between 3'closing pair and mismatch 2
+		if ((self._closingPairs[0][1], self._closingPairs[0][0]), mismatch3p) in InnerLoopMismatches_2x3:
+			mismatchEnergy_3x2 += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
+		else:
+			logging.warning(f'In energy() function for 3x2 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[0][1], self._closingPairs[0][0])} and the 3\' mismatch: {mismatch3p}.')
+			return float('inf')
+
+		return float(mismatchEnergy_3x2)
+
+
+	'''
+	Function Name: _getInnerLoopMismatchEnergy_2x3(self)
+	Description: Internal method to get the mismatch energy for a 2x3 InnerLoop
+	Parameters: None
+	Return Type: float
+	'''
+	def _getInnerLoopMismatchEnergy_2x3(self):
+		loop1, loop2 = self.loops() #get both loops
+		mismatch5p = (loop1[0], loop2[-1]) #get 1st mismatch
+		mismatch3p = (loop2[0], loop1[-1]) #get 2nd mismatch
+
+		mismatchEnergy_2x3 = 0
+		#check for mismatch condition between 5' closing pair and first mismatch
+		if (self._closingPairs[0], mismatch5p) in InnerLoopMismatches_2x3:
+			mismatchEnergy_2x3 += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
+		else:
+			logging.warning(f'In energy() function for 2x3 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {self._closingPairs[0]} and the 5\' mismatch: {mismatch5p}.')
+			return float('inf')
+
+		#check for mismatch condition between 3'closing pair and mismatch 2
+		if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch3p) in InnerLoopMismatches_2x3:
+			mismatchEnergy_2x3 += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
+		else:
+			logging.warning(f'In energy() function for 2x3 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[1][1], self._closingPairs[1][0])} and the 3\' mismatch: {mismatch3p}.')
+			return float('inf')
+
+		return float(mismatchEnergy_2x3)
+
+
+	'''
+	Function Name: _getInnerLoopMismatchEnergy_Other(self)
+	Description: Internal method to get the inner loop mismtach energy for other inner loops
+	Parameters: None
+	Return Type: float
+	'''
+	def _getInnerLoopMismatchEnergy_Other(self):
+		loop1, loop2 = self.loops() #get both loops
+		mismatch5p = (loop1[0], loop2[-1]) #get 1st mismatch
+		mismatch3p = (loop1[-1], loop2[0]) #get 2nd mismatch
+
+		mismatchEnergy_Other = 0
+		#check for mismatch 1 for condition
+		if mismatch5p in OtherInnerLoopMismtaches:
+			mismatchEnergy_Other += OtherInnerLoopMismtaches[mismatch5p]
+
+		#check mismatch 2 for condition
+		if mismatch3p in OtherInnerLoopMismtaches:
+			mismatchEnergy_Other += OtherInnerLoopMismtaches[mismatch3p]
+
+		return float(mismatchEnergy_Other)
+
+
+	'''
+	Function Name: _getInnerLoopMismtachEnergy(self)
+	Description: Internal method to get the mismatch energy for an inner loop
+	Parameters: None
+	Return Type: float
+	'''
+	def _getInnerLoopMismtachEnergy(self):
 		#Check for mismatches for base pairs on either end of the inner loop
 		mismatchEnergy = 0
 		#1 x (n-1) Inner Loops
+		loopLength = len(self._5pLoop) + len(self._3pLoop)
 		if (len(self._5pLoop) == 1 and len(self._3pLoop) == loopLength-1) or (len(self._5pLoop) == loopLength-1 and len(self._3pLoop) == 1):
-			pass #Mismatch energy is 0, so we dont need to do anything
+			return 0.0 #Mismatch energy is 0, so we dont need to do anything
+
 		#2x3 Inner Loop mismatches
 		elif (len(self._5pLoop) == 2 and len(self._3pLoop) == 3):
-			loop1, loop2 = self.loops() #get both loops
-			mismatch5p = (loop1[0], loop2[-1]) #get 1st mismatch
-			mismatch3p = (loop2[0], loop1[-1]) #get 2nd mismatch
+			return self._getInnerLoopMismatchEnergy_2x3()
 
-			#check for mismatch condition between 5' closing pair and first mismatch
-			if (self._closingPairs[0], mismatch5p) in InnerLoopMismatches_2x3:
-				mismatchEnergy += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
-
-			#check for mismatch condition between 3'closing pair and mismatch 2
-			if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch3p) in InnerLoopMismatches_2x3:
-				mismatchEnergy += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
 		#3x2 inner loop mismatches
 		elif (len(self._5pLoop) == 3 and len(self._3pLoop) == 2):
-			loop1, loop2 = self.loops()
-			mismatch5p = (loop2[0], loop1[-1])
-			mismatch3p = (loop1[0], loop2[-1])
+			return self._getInnerLoopMismatchEnergy_3x2()
 
-			#check for mismatch condition between 5' closing pair and first mismatch
-			if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch5p) in InnerLoopMismatches_2x3:
-				mismatchEnergy += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
-
-			#check for mismatch condition between 3'closing pair and mismatch 2
-			if ((self._closingPairs[0][1], self._closingPairs[0][0]), mismatch3p) in InnerLoopMismatches_2x3:
-				mismatchEnergy += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
 		#other inner loops
 		else:
-			loop1, loop2 = self.loops() #get both loops
-			mismatch5p = (loop1[0], loop2[-1]) #get 1st mismatch
-			mismatch3p = (loop1[-1], loop2[0]) #get 2nd mismatch
+			return self._getInnerLoopMismatchEnergy_Other()
 
-			#check for mismatch 1 for condition
-			if mismatch5p in OtherInnerLoopMismtaches:
-				mismatchEnergy += OtherInnerLoopMismtaches[mismatch5p]
 
-			#check mismatch 2 for condition
-			if mismatch3p in OtherInnerLoopMismtaches:
-				mismatchEnergy += OtherInnerLoopMismtaches[mismatch3p]
+	'''
+	Function Name: _calcEnergy(self)
+	Description: Internal method  to calculate the energy for inner loops whose energies are not stored in the imported dictionaries
+	Parameters: None
+	Return Type: float
+	'''
+	def _calcEnergy(self):
+		#get InnerLoop initiation parameter
+		ilInit = self._getInnerLoopInitEnergy()
+
+		#asymmetry penalty
+		asym = self._getInnerLoopAsymmetryEnergy()
+
+		#AU / GU Closure penalty
+		closingPenalty = self._getInnerLoopClosingPenalty()
+
+		#get mismtach energy
+		mismatchEnergy = self._getInnerLoopMismtachEnergy()
 
 		#sum energy components and return
 		return ilInit + asym + closingPenalty + mismatchEnergy
 
 
-
-	#Function to get the free energy for the inner loop object
+	'''
+	Function Name: energy(self)
+	Description: Function to get the free energy for the inner loop object
+	Parameters: None
+	Return Type: float
+	'''
 	def energy(self):
 
 		#check for 1x1 - value taken from imported dicitionary
@@ -565,8 +674,8 @@ class InnerLoop:
 				loopEnergy = InnerLoop_1x1_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop)]
 				return loopEnergy
 			else: #otherwise calculate energy
-				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using calcEnergy() function.')
-				return self.calcEnergy()
+				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
+				return float('inf')
 
 		#check for 1x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 1 and len(self._3pLoop) == 2:
@@ -574,8 +683,8 @@ class InnerLoop:
 				loopEnergy = InnerLoop_1x2_Energies[(self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[1], self._3pLoop[0])]
 				return loopEnergy
 			else: #otherwise calculate energy
-				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using calcEnergy() function.')
-				return self.calcEnergy()
+				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
+				return float('inf')
 
 		#check for 2x1 case - value taken from dicitonary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 1:
@@ -583,8 +692,8 @@ class InnerLoop:
 				loopEnergy = InnerLoop_1x2_Energies[((self._closingPairs[1][1], self._closingPairs[1][0]), (self._closingPairs[0][1], self._closingPairs[0][0]), self._3pLoop, self._5pLoop[1], self._5pLoop[0])]
 				return loopEnergy
 			else: #otherwise calculate energy
-				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using calcEnergy() function.')
-				return self.calcEnergy()
+				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
+				return float('inf')
 
 		#check for 2x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 2:
@@ -593,12 +702,12 @@ class InnerLoop:
 				loopEnergy = InnerLoop_2x2_Energies[(self._closingPairs[0], self._closingPairs[1], loops[0], loops[1])]
 				return loopEnergy
 			else: #otherwise calculate energy
-				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using calcEnergy() function.')
-				return self.calcEnergy()
+				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
+				return float('inf')
 
 		#Other cases need to be calculated
 		else:
-			return self.calcEnergy()
+			return self._calcEnergy()
 
 
 

@@ -15,7 +15,7 @@ import logging
 ## Structure Type Component Imports ##
 from StructureTypeComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
 
-#set logging configuration
+## set logging configuration ##
 logging.basicConfig(filename='StructureType.log', level=logging.WARNING, filemode='w', format='%(process)d - %(levelname)s - %(message)s')
 
 '''
@@ -25,7 +25,7 @@ The object provides a mechanism to easily access and work with the data in the p
 functionality for calculating the energy associated with certain RNA secondary structures with the RNA molecule.
 '''
 class StructureType:
-	#__init__() method for the StructureTyoe object
+	#__init__() method for the StructureType object
 	def __init__(self, filename=None):
 		#RNA Molecule basic info
 		#all values are stored as strings
