@@ -399,7 +399,7 @@ class Bulge:
 				basePairStack = StackingEnergies[self._closingPair5p][self._closingPair3p]
 			except KeyError:
 				logging.warning(f'In energy() function for Bulge: {self._label}, No base pair stack found for {self._closingPair5p} and {self._closingPair3p}. Base Pair stack set to 0.')
-				basePairStack = 0
+				basePairStack = float('inf')
 
 			return BulgeInit[1] + specialC + basePairStack
 
