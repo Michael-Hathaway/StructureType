@@ -136,7 +136,7 @@ class Stem:
 		return self._seq_3p_index
 
  	#function calculates the folding free energy change for the stem
-	def energy(self):
+	def energy(self, strict=True):
 		energy = 0
 		seq = self.sequence() #get stem as list of tuple base pairs
 
@@ -159,7 +159,11 @@ class Stem:
 				stack += StackingEnergies[seq[i]][seq[i+1]]
 			except KeyError:
 				logging.warning(f'In energy() function for Stem: {self._label}, Stacking energy not found for {seq[i]} and {seq[i+1]}.')
-				continue
+				if strict: #default strict mode - only calculate energy for stems with all valid parameters
+					stack = float('inf')
+					break
+				else:
+					continue #maybe try to estimate???
 
 		return INTERMOLECULAR_INIT + symmetry + endPenalty + stack
 
@@ -249,7 +253,7 @@ class Hairpin:
 		return self._pk
 
 	#function to calculate folding free energy of hairpin
-	def energy(self):
+	def energy(self, strict=True):
 		#get hairpin initiation term
 		if self._sequenceLen in HairpinInit: #try to get from dictionary
 			init = HairpinInit[self._sequenceLen]
@@ -262,7 +266,8 @@ class Hairpin:
 			terminalMismatch = StackTerminalMismatches[self._closingPair][firstMismatch]
 		except KeyError:
 			logging.warning(f'In energy() function for Hairping: {self._label}, terminal mismatch parameters for closing pair: {self._closingPair} and first mismatch: {firstMismatch} not found in Dictionary.')
-			terminalMismatch = 0
+			if strict: terminalMismatch = float('inf') #strict mode - only calculate energy for hairpins with valid params
+			else: terminalMismatch = 0
 
 		#UU/GA first mismatch bonus
 		uu_ga_bonus = 0
@@ -385,7 +390,7 @@ class Bulge:
 		return self._closingPair3pSpan
 
 	#function calculates the folding free energy change for the bulge
-	def energy(self):
+	def energy(self, strict=True):
 		if self._sequenceLen == 1: #bulges of length 1
 			#check for special C bulge case
 			#special C condition = sequence is all 'C' with at least one adjacent 'C'
@@ -398,8 +403,11 @@ class Bulge:
 			try:
 				basePairStack = StackingEnergies[self._closingPair5p][self._closingPair3p]
 			except KeyError:
-				logging.warning(f'In energy() function for Bulge: {self._label}, No base pair stack found for {self._closingPair5p} and {self._closingPair3p}. Base Pair stack set to 0.')
-				basePairStack = float('inf')
+				logging.warning(f'In energy() function for Bulge: {self._label}, No base pair stack found for {self._closingPair5p} and {self._closingPair3p}. Energy Value set to float(\'inf\').')
+
+				if strict: basePairStack = float('inf') #strict mode - only calculate energy for bulges with valid params
+				else: basePairStack = 0
+
 
 			return BulgeInit[1] + specialC + basePairStack
 
@@ -666,8 +674,8 @@ class InnerLoop:
 	Parameters: None
 	Return Type: float
 	'''
-	def energy(self):
-
+	def energy(self, strict=True):
+		
 		#check for 1x1 - value taken from imported dicitionary
 		if len(self._5pLoop) == 1 and len(self._3pLoop) == 1:
 			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop) in InnerLoop_1x1_Energies: #check if key in dictionary
@@ -675,7 +683,8 @@ class InnerLoop:
 				return loopEnergy
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
-				return float('inf')
+				if strict: return float('inf')
+				else: return self._calcEnergy()
 
 		#check for 1x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 1 and len(self._3pLoop) == 2:
@@ -684,7 +693,8 @@ class InnerLoop:
 				return loopEnergy
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
-				return float('inf')
+				if strict: return float('inf')
+				else: return self._calcEnergy()
 
 		#check for 2x1 case - value taken from dicitonary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 1:
@@ -693,7 +703,8 @@ class InnerLoop:
 				return loopEnergy
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
-				return float('inf')
+				if strict: return float('inf')
+				else: return self._calcEnergy()
 
 		#check for 2x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 2:
@@ -703,7 +714,8 @@ class InnerLoop:
 				return loopEnergy
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
-				return float('inf')
+				if strict: return float('inf')
+				else: return self._calcEnergy()
 
 		#Other cases need to be calculated
 		else:
