@@ -1,5 +1,10 @@
-7650 - WARNING - In energy() function for 3x2 InnerLoop: I1, no mismatch parameter for closing pair: ('G', 'C') and the 5' mismatch: ('A', 'C').
-7650 - WARNING - Inner Loop: I11, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
-7650 - WARNING - Inner Loop: I12, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
-7650 - WARNING - Inner Loop: I23, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
-7650 - WARNING - Inner Loop: I24, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+489 - WARNING - In energy() function for 3x2 InnerLoop: I1, no mismatch parameter for closing pair: ('G', 'C') and the 5' mismatch: ('A', 'C').
+489 - WARNING - Inner Loop: I11, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+489 - WARNING - Inner Loop: I12, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+489 - WARNING - Inner Loop: I23, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+489 - WARNING - Inner Loop: I24, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+489 - WARNING - In energy() function for 3x2 InnerLoop: I1, no mismatch parameter for closing pair: ('G', 'C') and the 5' mismatch: ('A', 'C').
+489 - WARNING - Inner Loop: I11, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+489 - WARNING - Inner Loop: I12, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+489 - WARNING - Inner Loop: I23, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+489 - WARNING - Inner Loop: I24, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
