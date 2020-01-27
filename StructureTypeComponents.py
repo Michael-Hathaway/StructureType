@@ -434,6 +434,7 @@ self._5pLoopSpan -- tuple(int, int) -- tuple containing the integer start and st
 self._3pLoopSpan -- tuple(int, int) -- tuple containing the integer start and stop locations for the 3' inner loop subcomponent
 self._closingPairs -- tuple((string, string), (string, string)) -- tuple with two nested tuples containing the closing pairs for the inner loop
 self._closingPairsSpan -- tuple((int, int), (int, int)) -- tuple with two nested tuples containing the index locations of the closing pairs for the inner loop
+self._strict -- bool -- boolean used to control whether energy is calculated strictly
 '''
 class InnerLoop:
 	# __init__ method for InnerLoop object
@@ -448,6 +449,7 @@ class InnerLoop:
 		self._span3p = loop3pSpan
 		self._closingPairs = closingPairs
 		self._closingPairsSpan = closingPairsSpan
+		self._strict = True #used for to control energy function
 
 	#defines the string representation of the object
 	def __str__(self):
@@ -554,14 +556,16 @@ class InnerLoop:
 			mismatchEnergy_3x2 += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
 		else:
 			logging.warning(f'In energy() function for 3x2 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[1][1], self._closingPairs[1][0])} and the 5\' mismatch: {mismatch5p}.')
-			return float('inf')
+			if (self._strict):
+				return float('inf')
 
 		#check for mismatch condition between 3'closing pair and mismatch 2
 		if ((self._closingPairs[0][1], self._closingPairs[0][0]), mismatch3p) in InnerLoopMismatches_2x3:
 			mismatchEnergy_3x2 += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
 		else:
 			logging.warning(f'In energy() function for 3x2 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[0][1], self._closingPairs[0][0])} and the 3\' mismatch: {mismatch3p}.')
-			return float('inf')
+			if (self._strict):
+				return float('inf')
 
 		return float(mismatchEnergy_3x2)
 
@@ -583,14 +587,16 @@ class InnerLoop:
 			mismatchEnergy_2x3 += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
 		else:
 			logging.warning(f'In energy() function for 2x3 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {self._closingPairs[0]} and the 5\' mismatch: {mismatch5p}.')
-			return float('inf')
+			if (self._strict):
+				return float('inf')
 
 		#check for mismatch condition between 3'closing pair and mismatch 2
 		if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch3p) in InnerLoopMismatches_2x3:
 			mismatchEnergy_2x3 += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
 		else:
 			logging.warning(f'In energy() function for 2x3 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[1][1], self._closingPairs[1][0])} and the 3\' mismatch: {mismatch3p}.')
-			return float('inf')
+			if (self._strict):
+				return float('inf')
 
 		return float(mismatchEnergy_2x3)
 
@@ -610,10 +616,14 @@ class InnerLoop:
 		#check for mismatch 1 for condition
 		if mismatch5p in OtherInnerLoopMismtaches:
 			mismatchEnergy_Other += OtherInnerLoopMismtaches[mismatch5p]
+		elif (self._strict):
+			return float('inf')
 
 		#check mismatch 2 for condition
 		if mismatch3p in OtherInnerLoopMismtaches:
 			mismatchEnergy_Other += OtherInnerLoopMismtaches[mismatch3p]
+		elif (self._strict):
+			return float('inf')
 
 		return float(mismatchEnergy_Other)
 
@@ -675,7 +685,9 @@ class InnerLoop:
 	Return Type: float
 	'''
 	def energy(self, strict=True):
-		
+		#set mode for energy calculations
+		self._strict = strict
+
 		#check for 1x1 - value taken from imported dicitionary
 		if len(self._5pLoop) == 1 and len(self._3pLoop) == 1:
 			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop) in InnerLoop_1x1_Energies: #check if key in dictionary
@@ -683,8 +695,10 @@ class InnerLoop:
 				return loopEnergy
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
-				if strict: return float('inf')
-				else: return self._calcEnergy()
+				if(self._strict):
+					return float('inf')
+				else:
+					return self._calcEnergy()
 
 		#check for 1x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 1 and len(self._3pLoop) == 2:
@@ -693,8 +707,10 @@ class InnerLoop:
 				return loopEnergy
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
-				if strict: return float('inf')
-				else: return self._calcEnergy()
+				if(self._strict):
+					return float('inf')
+				else:
+					return self._calcEnergy()
 
 		#check for 2x1 case - value taken from dicitonary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 1:
@@ -703,8 +719,10 @@ class InnerLoop:
 				return loopEnergy
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
-				if strict: return float('inf')
-				else: return self._calcEnergy()
+				if(self._strict):
+					return float('inf')
+				else:
+					return self._calcEnergy()
 
 		#check for 2x2 - value taken from imported dicitionary
 		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 2:
@@ -714,8 +732,10 @@ class InnerLoop:
 				return loopEnergy
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
-				if strict: return float('inf')
-				else: return self._calcEnergy()
+				if(self._strict):
+					return float('inf')
+				else:
+					return self._calcEnergy()
 
 		#Other cases need to be calculated
 		else:
