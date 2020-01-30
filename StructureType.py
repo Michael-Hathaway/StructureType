@@ -5,6 +5,8 @@ Author: Michael Hathaway
 Description: python module that defines the structureType Object.
 The structureType Object provides a user friendly mechanism for working with
 RNA structure type files in the python programming language.
+
+-Allow for manual contruction of STC subcomponents
 '''
 
 ## Module Imports ##

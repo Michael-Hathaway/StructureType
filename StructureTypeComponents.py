@@ -54,12 +54,12 @@ the Stem object is used to represent RNA secondary structure stems.
 Member variable -- data type -- description:
 
 self._label -- String -- the label for the stem as defined in the structure type file.
-self._seq_5p -- String -- the 5' portion of the stem sequence.
-self._seq_3p -- String -- the 3' portion of the stem sequence.
+self._sequence5p -- String -- the 5' portion of the stem sequence.
+self._sequence3p -- String -- the 3' portion of the stem sequence.
 self._sequenceLen -- Int -- the length of the stem in number of base pairs.
-self._seq_5p_index -- (int, int) -- tuple containing the integer value start and stop
+self._sequence5p_index -- (int, int) -- tuple containing the integer value start and stop
 	indices for the 5' portion of the stem sequence.
-self._seq_3p_index -- (int, int) -- tuple containing the integer value start and stop
+self._sequence3p_index -- (int, int) -- tuple containing the integer value start and stop
 	indices for the 3' portion of the stem sequence.
 
 
@@ -74,14 +74,14 @@ self._seq_3p_index -- (int, int) -- tuple containing the integer value start and
 '''
 class Stem:
 	# __init__ method for stem object
-	def __init__(self, label="", seq_5p="", seq_3p="", seq_5p_index=-1, seq_3p_index=-1):
+	def __init__(self, label="", sequence5p="", sequence3p="", sequence5p_span=(-1, -1), sequence3p_span=(-1, -1)):
 		self._label = label #sequence label
-		self._seq_5p = seq_5p #5' portion of stem
-		self._seq_3p = seq_3p #3' portion of stem
-		self._sequence = list(zip(list(self._seq_5p), list(self._seq_3p[::-1])))
-		self._sequenceLen = (len(seq_5p) + len(seq_3p)) // 2 #sequence length
-		self._seq_5p_index = seq_5p_index #tuple containing start and stop indices of 5' prime portion of stem
-		self._seq_3p_index = seq_3p_index #tuple containing start and stop indices of 3' prime portion of stem
+		self._sequence5p = sequence5p #5' portion of stem
+		self._sequence3p = sequence3p #3' portion of stem
+		self._sequence = list(zip(list(self._sequence5p), list(self._sequence3p[::-1])))
+		self._sequenceLen = (len(sequence5p) + len(sequence3p)) // 2 #sequence length
+		self._sequence5p_span = sequence5p_span #tuple containing start and stop indices of 5' prime portion of stem
+		self._sequence3p_span = sequence3p_span #tuple containing start and stop indices of 3' prime portion of stem
 
 	#define string representation of object
 	def __str__(self):
@@ -89,8 +89,8 @@ class Stem:
 
 	#Internal method to set the object _sequence member variable as a list of tuples based on the 5' and 3' sequence variables
 	def _setSequence(self):
-		if len(self._seq_5p) == len(self._seq_3p):
-			self._sequence = list(zip(list(self._seq_5p), list(self._seq_3p[::-1])))
+		if len(self._sequence5p) == len(self._sequence3p):
+			self._sequence = list(zip(list(self._sequence5p), list(self._sequence3p[::-1])))
 
 	#function returns the label for the stem object. Also allows for user to change label of stems
 	def label(self, newLabel=None):
@@ -102,18 +102,18 @@ class Stem:
 	#function returns the 5' portion of the stem sequence
 	def sequence5p(self, newSequence=None):
 		if (newSequence) and (len(newSequence) == self._sequenceLen): #if new sequence is provided and it is the same length as the existing sequence
-			self._seq_5p = newSequence
-			self._setSequence #reset the self._sequence variable
+			self._sequence5p = newSequence
+			self._setSequence() #reset the self._sequence variable
 		else:
-			return self._seq_5p
+			return self._sequence5p
 
 	#function returns the 3' portion of the stem sequence
 	def sequence3p(self, newSequence=None):
 		if (newSequence) and (len(newSequence) == self._sequenceLen): #if new sequence is provided and it is the same length as the existing sequence
-			self._seq_3p = newSequence
-			self._setSequence #reset the self._sequence variable
+			self._sequence3p = newSequence
+			self._setSequence() #reset the self._sequence variable
 		else:
-			return self._seq_3p
+			return self._sequence3p
 
 	#function returns the stem sequence as a list of tuples containg base pairs. Ex: [('C','G'), ... , ('A', 'U')]
 	def sequence(self):
@@ -125,24 +125,23 @@ class Stem:
 
 	#function returns a tuple containing two tuples that contain start and stop indices for the 5' and 3' sequence of the stem
 	def span(self):
-		return (self._seq_5p_index, self._seq_3p_index)
+		return (self._sequence5p_span, self._sequence3p_span)
 
 	#function returns the start and stop indices of the 5' portion of the stem in a tuple. Ex: (start, stop)
 	def sequence5pSpan(self):
-		return self._seq_5p_index
+		return self._sequence5p_span
 
 	#function returns the start and stop indices of the 3' portion of the stem in a tuple. Ex: (start, stop)
 	def sequence3pSpan(self):
-		return self._seq_3p_index
+		return self._sequence3p_span
 
  	#function calculates the folding free energy change for the stem
-	def energy(self, strict=True):
-		energy = 0
+	def energy(self, strict=True, init=False):
 		seq = self.sequence() #get stem as list of tuple base pairs
 
 		#check for symmetry
 		symmetry = 0
-		if self._seq_5p == self._seq_3p:
+		if self._sequence5p == self._sequence3p:
 			symmetry = STEM_SYMMETRY_PENALTY
 
 		#check for AU end penalty
@@ -160,12 +159,16 @@ class Stem:
 			except KeyError:
 				logging.warning(f'In energy() function for Stem: {self._label}, Stacking energy not found for {seq[i]} and {seq[i+1]}.')
 				if strict: #default strict mode - only calculate energy for stems with all valid parameters
-					stack = float('inf')
+					return None
 					break
 				else:
-					continue #maybe try to estimate???
+					continue 
 
-		return INTERMOLECULAR_INIT + symmetry + endPenalty + stack
+		if(init):
+			return INTERMOLECULAR_INIT + symmetry + endPenalty + stack
+		else:
+			return symmetry + endPenalty + stack
+
 
 
 
@@ -183,7 +186,7 @@ self._span -- (int, int) -- tuple containing the integer start and stop indices
 	for the hairpin.
 self._closingPair -- (string, string) -- tuple containing two single character strings. The first character
 	corresponds to the 5' base in the closing pair. The second character is the 3' base in the closing pair.
-self._closing_index -- (int, int) -- tuple containing two integers. The first integer is the index location of
+self._closing_span -- (int, int) -- tuple containing two integers. The first integer is the index location of
 	the 5' base in the closing pair. The second integer is the index location of the 3'base in the closing pair.
 self._pk -- Int -- ???
 
@@ -201,13 +204,13 @@ self._pk -- Int -- ???
 '''
 class Hairpin:
 	# __init__ method for stem object
-	def __init__(self, label="", seq="", seq_index=(-1, -1), closing_pair=('', ''), closing_index=(-1, -1), pk=None):
+	def __init__(self, label="", sequence="", sequenceSpan=(-1, -1), closingPair=('', ''), closingPairSpan=(-1, -1), pk=None):
 		self._label = label
-		self._sequence = seq
-		self._sequenceLen = len(seq)
-		self._span = seq_index
-		self._closingPair = closing_pair
-		self._closingPairSpan = closing_index
+		self._sequence = sequence
+		self._sequenceLen = len(sequence)
+		self._span = sequenceSpan
+		self._closingPair = closingPair
+		self._closingPairSpan = closingPairSpan
 		self._pk = pk
 
 	#define string representation of object
@@ -266,8 +269,10 @@ class Hairpin:
 			terminalMismatch = StackTerminalMismatches[self._closingPair][firstMismatch]
 		except KeyError:
 			logging.warning(f'In energy() function for Hairping: {self._label}, terminal mismatch parameters for closing pair: {self._closingPair} and first mismatch: {firstMismatch} not found in Dictionary.')
-			if strict: terminalMismatch = float('inf') #strict mode - only calculate energy for hairpins with valid params
-			else: terminalMismatch = 0
+			if strict:
+				return None #strict mode - only calculate energy for hairpins with valid params
+			else:
+				terminalMismatch = 0
 
 		#UU/GA first mismatch bonus
 		uu_ga_bonus = 0
@@ -330,15 +335,15 @@ self._pk -- int -- ???
 '''
 class Bulge:
 	# __init__ method for bulge object
-	def __init__(self, label, seq, seq_index, closingPair5, closingPair5Span, closingPair3, closingPair3Span, pk):
+	def __init__(self, label, seq, sequenceSpan, closingPair5p, closingPair5pSpan, closingPair3p, closingPair3pSpan, pk):
 		self._label = label
 		self._sequence = seq
 		self._sequenceLen = len(seq)
-		self._span = seq_index
-		self._closingPair5p = closingPair5
-		self._closingPair5pSpan = closingPair5Span
-		self._closingPair3p = closingPair3
-		self._closingPair3pSpan = closingPair3Span
+		self._span = sequenceSpan
+		self._closingPair5p = closingPair5p
+		self._closingPair5pSpan = closingPair5pSpan
+		self._closingPair3p = closingPair3p
+		self._closingPair3pSpan = closingPair3pSpan
 		self._pk = pk
 
 	#defines string representation for object
@@ -405,8 +410,10 @@ class Bulge:
 			except KeyError:
 				logging.warning(f'In energy() function for Bulge: {self._label}, No base pair stack found for {self._closingPair5p} and {self._closingPair3p}. Energy Value set to float(\'inf\').')
 
-				if strict: basePairStack = float('inf') #strict mode - only calculate energy for bulges with valid params
-				else: basePairStack = 0
+				if strict:
+					return None #strict mode - only calculate energy for bulges with valid params
+				else:
+					basePairStack = 0
 
 
 			return BulgeInit[1] + specialC + basePairStack
@@ -557,7 +564,7 @@ class InnerLoop:
 		else:
 			logging.warning(f'In energy() function for 3x2 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[1][1], self._closingPairs[1][0])} and the 5\' mismatch: {mismatch5p}.')
 			if (self._strict):
-				return float('inf')
+				return None
 
 		#check for mismatch condition between 3'closing pair and mismatch 2
 		if ((self._closingPairs[0][1], self._closingPairs[0][0]), mismatch3p) in InnerLoopMismatches_2x3:
@@ -565,7 +572,7 @@ class InnerLoop:
 		else:
 			logging.warning(f'In energy() function for 3x2 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[0][1], self._closingPairs[0][0])} and the 3\' mismatch: {mismatch3p}.')
 			if (self._strict):
-				return float('inf')
+				return None
 
 		return float(mismatchEnergy_3x2)
 
@@ -588,7 +595,7 @@ class InnerLoop:
 		else:
 			logging.warning(f'In energy() function for 2x3 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {self._closingPairs[0]} and the 5\' mismatch: {mismatch5p}.')
 			if (self._strict):
-				return float('inf')
+				return None
 
 		#check for mismatch condition between 3'closing pair and mismatch 2
 		if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch3p) in InnerLoopMismatches_2x3:
@@ -596,7 +603,7 @@ class InnerLoop:
 		else:
 			logging.warning(f'In energy() function for 2x3 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[1][1], self._closingPairs[1][0])} and the 3\' mismatch: {mismatch3p}.')
 			if (self._strict):
-				return float('inf')
+				return None
 
 		return float(mismatchEnergy_2x3)
 
@@ -617,13 +624,13 @@ class InnerLoop:
 		if mismatch5p in OtherInnerLoopMismtaches:
 			mismatchEnergy_Other += OtherInnerLoopMismtaches[mismatch5p]
 		elif (self._strict):
-			return float('inf')
+			return None
 
 		#check mismatch 2 for condition
 		if mismatch3p in OtherInnerLoopMismtaches:
 			mismatchEnergy_Other += OtherInnerLoopMismtaches[mismatch3p]
 		elif (self._strict):
-			return float('inf')
+			return None
 
 		return float(mismatchEnergy_Other)
 
@@ -664,15 +671,23 @@ class InnerLoop:
 	def _calcEnergy(self):
 		#get InnerLoop initiation parameter
 		ilInit = self._getInnerLoopInitEnergy()
+		if(ilInit is None): #check that parameter is present
+			return None
 
 		#asymmetry penalty
 		asym = self._getInnerLoopAsymmetryEnergy()
+		if(asym is None):#check that parameter is present
+			return None
 
 		#AU / GU Closure penalty
 		closingPenalty = self._getInnerLoopClosingPenalty()
+		if(closingPenalty is None):#check that parameter is present
+			return None
 
 		#get mismtach energy
 		mismatchEnergy = self._getInnerLoopMismtachEnergy()
+		if(mismatchEnergy is None):#check that parameter is present
+			return None
 
 		#sum energy components and return
 		return ilInit + asym + closingPenalty + mismatchEnergy
@@ -696,7 +711,7 @@ class InnerLoop:
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
 				if(self._strict):
-					return float('inf')
+					return None
 				else:
 					return self._calcEnergy()
 
@@ -708,7 +723,7 @@ class InnerLoop:
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 1x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
 				if(self._strict):
-					return float('inf')
+					return None
 				else:
 					return self._calcEnergy()
 
@@ -720,7 +735,7 @@ class InnerLoop:
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
 				if(self._strict):
-					return float('inf')
+					return None
 				else:
 					return self._calcEnergy()
 
@@ -733,7 +748,7 @@ class InnerLoop:
 			else: #otherwise calculate energy
 				logging.warning(f'Inner Loop: {self._parentLabel}, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.')
 				if(self._strict):
-					return float('inf')
+					return None
 				else:
 					return self._calcEnergy()
 
@@ -793,10 +808,10 @@ self._span -- tuple(int, int) -- tuple containing the integer start and stop loc
 '''
 class End:
 	#__init__() method for end object
-	def __init__(self, label, seq, seqSpan):
+	def __init__(self, label, sequence, span):
 		self._label = label
-		self._sequence = seq
-		self._span = seqSpan
+		self._sequence = sequence
+		self._span = span
 
 	#define string representation of end object
 	def __str__(self):
