@@ -92,6 +92,9 @@ class Stem:
 		if len(self._sequence5p) == len(self._sequence3p):
 			self._sequence = list(zip(list(self._sequence5p), list(self._sequence3p[::-1])))
 
+	def _setSequenceLen(self):
+		self._sequenceLen = (len(self._sequence5p) + len(self._sequence3p)) // 2
+
 	#function returns the label for the stem object. Also allows for user to change label of stems
 	def label(self, newLabel=None):
 		if newLabel :
@@ -101,23 +104,38 @@ class Stem:
 
 	#function returns the 5' portion of the stem sequence
 	def sequence5p(self, newSequence=None):
-		if (newSequence) and (len(newSequence) == self._sequenceLen): #if new sequence is provided and it is the same length as the existing sequence
-			self._sequence5p = newSequence
-			self._setSequence() #reset the self._sequence variable
+		if (newSequence):  #if new sequence is provided
+			if(len(newSequence) == self._sequenceLen): #check that sequence length matchees other 3' sequences
+				self._sequence5p = newSequence
+				self._setSequence() #reset the self._sequence variable
+			else:
+				print('Unable to set new 5\' sequence')
 		else:
 			return self._sequence5p
 
 	#function returns the 3' portion of the stem sequence
 	def sequence3p(self, newSequence=None):
-		if (newSequence) and (len(newSequence) == self._sequenceLen): #if new sequence is provided and it is the same length as the existing sequence
-			self._sequence3p = newSequence
-			self._setSequence() #reset the self._sequence variable
+		if (newSequence):  #if new sequence is provided
+			if(len(newSequence) == self._sequenceLen): #check that sequence length matchees other 5' sequences
+				self._sequence3p = newSequence
+				self._setSequence() #reset the self._sequence variable
+			else:
+				print('Unable to set new 3\' sequence')
 		else:
 			return self._sequence3p
 
 	#function returns the stem sequence as a list of tuples containg base pairs. Ex: [('C','G'), ... , ('A', 'U')]
-	def sequence(self):
-		return self._sequence
+	def sequence(self, sequence5p=None, sequence3p=None):
+		if(sequence5p and sequence3p):
+			if(len(sequence5p) == len(sequence3p)):
+				self._sequence5p = sequence5p
+				self._sequence3p = sequence3p
+				self._setSequence()
+				self._setSequenceLen()
+			else:
+				print('Could not set the stem sequence because the 5\' and 3\' sequences are different lengths.')
+		else:
+			return self._sequence
 
 	#function returns the length of the stem
 	def sequenceLen(self):
@@ -162,7 +180,7 @@ class Stem:
 					return None
 					break
 				else:
-					continue 
+					continue
 
 		if(init):
 			return INTERMOLECULAR_INIT + symmetry + endPenalty + stack
@@ -335,7 +353,7 @@ self._pk -- int -- ???
 '''
 class Bulge:
 	# __init__ method for bulge object
-	def __init__(self, label, seq, sequenceSpan, closingPair5p, closingPair5pSpan, closingPair3p, closingPair3pSpan, pk):
+	def __init__(self, label=None, seq='', sequenceSpan=(-1, -1), closingPair5p=('', ''), closingPair5pSpan=(-1, -1), closingPair3p=('', ''), closingPair3pSpan=(-1, -1), pk=None):
 		self._label = label
 		self._sequence = seq
 		self._sequenceLen = len(seq)
@@ -445,7 +463,7 @@ self._strict -- bool -- boolean used to control whether energy is calculated str
 '''
 class InnerLoop:
 	# __init__ method for InnerLoop object
-	def __init__(self, pLabel, label5p, label3p,  loop5p, loop3p, loop5pSpan, loop3pSpan, closingPairs, closingPairsSpan):
+	def __init__(self, pLabel=None, label5p=None, label3p=None,  loop5p='', loop3p='', loop5pSpan=(-1, -1), loop3pSpan=(-1, -1), closingPairs=(('', ''), ('', '')), closingPairsSpan=((-1, -1), (-1, -1))):
 		self._parentLabel = pLabel
 		self._5pLabel = label5p
 		self._3pLabel = label3p
@@ -464,7 +482,7 @@ class InnerLoop:
 
 	#function to update loop lengths upon change
 	def _updateLoopLen(self):
-		self._loopsLen = (len(loop5p), len(loop3p))
+		self._loopsLen = (len(self._5pLoop), len(self._3pLoop))
 
 	#Function returns the parent label for the inner loop. Also allows user to set new label
 	def label(self, newLabel=None):
@@ -478,13 +496,28 @@ class InnerLoop:
 
 	#Function returns a tuple containing the sequences for the two inner loop subcomponents. Also allows user to define new loop sequences.
 	def loops(self, loop5p=None, loop3p=None):
-		if loop5p is None and loop3p is None:
+		if(loop5p and loop3p):
+			self._5pLoop = loop5p
+			self._3pLoop = loop3p
+			self._updateLoopLen()
+		else:
 			return (self._5pLoop, self._3pLoop)
 
-		if loop5p: self._5pLoop = loop5p
-		if loop3p: self._3pLoop = loop3p
-		self._updateLoopLen()
+	#Function that returns the 5' portion of the inner loop. Also allows user to define 5p portion of the loop
+	def loop5p(self, loop=None):
+		if(loop):
+			self._5pLoop = loop
+			self._updateLoopLen()
+		else:
+			return self._5pLoop
 
+	#Function that returns the 3' portion of the inner loop. Also allows user to define 5p portion of the loop
+	def loop3p(self, loop=None):
+		if(loop):
+			self._3pLoop = loop
+			self._updateLoopLen()
+		else:
+			return self._3pLoop
 
 	#Function returns a tuple containing the the integer value lengths of the two inner loop components
 	def loopsLen(self):
