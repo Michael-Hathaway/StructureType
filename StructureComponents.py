@@ -43,8 +43,11 @@ HAIRPIN_C3 = 1.5
 HAIRPIN_C_LOOP_A = 0.3
 HAIRPIN_C_LOOP_B = 1.6
 
+#other Constants
+CANONICAL_BASE_PAIRS = [('A', 'U'), ('U', 'A'), ('G', 'C'), ('C', 'G'), ('G', 'U'), ('U', 'G')]
+
 #set logging configuration
-logging.basicConfig(filename='StructureTypeComponents.log', level=logging.WARNING, filemode='w', format='%(process)d - %(levelname)s - %(message)s')
+logging.basicConfig(filename='./StructureComponents.log', level=logging.WARNING, filemode='w', format='%(process)d - %(levelname)s - %(message)s')
 
 
 '''
@@ -92,6 +95,7 @@ class Stem:
 		if len(self._sequence5p) == len(self._sequence3p):
 			self._sequence = list(zip(list(self._sequence5p), list(self._sequence3p[::-1])))
 
+	#internal method to update the sequenceLen member variable when the sequence is changed by the user
 	def _setSequenceLen(self):
 		self._sequenceLen = (len(self._sequence5p) + len(self._sequence3p)) // 2
 
@@ -136,6 +140,10 @@ class Stem:
 				print('Could not set the stem sequence because the 5\' and 3\' sequences are different lengths.')
 		else:
 			return self._sequence
+
+	#Function to check if all base pairs in a stem are canonical base pairings
+	def canonical(self):
+		return all(pair in CANONICAL_BASE_PAIRS for pair in self._sequence)
 
 	#function returns the length of the stem
 	def sequenceLen(self):

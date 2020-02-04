@@ -2,8 +2,8 @@
 Filename: StructureType.py
 Author: Michael Hathaway
 
-Description: python module that defines the structureType Object.
-The structureType Object provides a user friendly mechanism for working with
+Description: python module that defines the Structure Object.
+The Structure Object provides a user friendly mechanism for working with
 RNA structure type files in the python programming language.
 
 -Allow for manual contruction of STC subcomponents
@@ -12,22 +12,18 @@ RNA structure type files in the python programming language.
 ## Module Imports ##
 import numpy as np
 import re
-import logging
 
 ## Structure Type Component Imports ##
-from StructureTypeComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
-
-## set logging configuration ##
-logging.basicConfig(filename='StructureType.log', level=logging.WARNING, filemode='w', format='%(process)d - %(levelname)s - %(message)s')
+from StructureComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
 
 '''
-## About the structureType object ##
-The StructureType object is a python object-oriented representation of the information contained within an RNA Structure Type file.
+## About the structure object ##
+The Structure object is a python object-oriented representation of the information contained within an RNA Structure Type file.
 The object provides a mechanism to easily access and work with the data in the python programming language. In addition it includes
 functionality for calculating the energy associated with certain RNA secondary structures with the RNA molecule.
 '''
-class StructureType:
-	#__init__() method for the StructureType object
+class Structure:
+	#__init__() method for the Structure object
 	def __init__(self, filename=None):
 		#RNA Molecule basic info
 		#all values are stored as strings
@@ -87,7 +83,7 @@ class StructureType:
 	'''
 	Function Name: loadFile(filename)
 	Description: user accessible function that can be used to load data from a structure type file into
-	the StructureType object if no file is provided at object instantiation.
+	the Structureobject if no file is provided at object instantiation.
 	Parameters: (filename) - str - name of the structure type file to be loaded into the object
 	Return Type: None
 	'''
@@ -97,7 +93,7 @@ class StructureType:
 
 	'''
 	Function Name: _loadFile(filename)
-	Description: Internal method to parse the data in an RNA structure tyoe file into a StructureType object
+	Description: Internal method to parse the data in an RNA structure tyoe file into a Structureobject
 	Parameters: (filename) - str, name of the file to be parsed
 	Return Type: StructureType
 
@@ -120,41 +116,46 @@ class StructureType:
 			print('Something unexpected ocurred when accessing the file')
 			return None
 
-		lineCounter = 1 #using counter to identify lines that do not have label but are always in the same position
+		#iterate through all of the lines in the file
 		for line in f:
-			#get name of RNA molecule
-			if line[0:6] == '#Name:':
-				self._name = line[7:-1:]
 
-			#get length of the RNA sequence
-			elif line[0:8] == '#Length:':
-				self._length = int(line[10:-1:])
-				self._componentArray = np.empty(self._length, dtype=object)
+			if line[0] == '#':
+				#get name of RNA molecule
+				if line[0:6] == '#Name:':
+					self._name = line[7:-1:]
 
-			#get page number for molecule
-			elif line[0:12] == '#PageNumber:':
-				self._pageNum = int(line[13:-1:])
+				#get length of the RNA sequence
+				elif line[0:8] == '#Length:':
+					self._length = int(line[10:-1:])
+					self._componentArray = np.empty(self._length, dtype=object)
+
+				#get page number for molecule
+				elif line[0:12] == '#PageNumber:':
+					self._pageNum = int(line[13:-1:])
+
+				else:
+					continue
 
 			#get actual RNA sequence
-			elif lineCounter == 5:
+			elif all(i in ['A', 'U', 'C', 'G'] for i in line[:-1]):
 				self._sequence = line[:-1] #drop the newline character
 
 			#get Dot Bracket Notation for the molecule
-			elif lineCounter == 6:
+			elif all(i in ['(', ')', '[', ']', '.', '}', '{'] for i in line[:-1]):
 				self._DBNotation = line[:-1] #drop the newline character
 
 			#get Annotated symbol form of the molecule
-			elif lineCounter == 7:
+			elif all(i in ['S', 'B', 'E', 'I', 'M', 'H', 'X'] for i in line[:-1]):
 				self._structureArray = line[:-1] #drop the newline character
 
 			#varna notation for the molecule
-			elif lineCounter == 8:
+			elif all(i in ['K', 'N'] for i in line[:-1]):
 				self._varna = line[:-1] #drop the newline characters
 
+			#when all identifying data has been parsed, parse the StructureComponents
+			else:
 				features = f.read() #read the rest of the file into features variable
 				break
-
-			lineCounter += 1
 
 
 		features = features.split('\n') #split rest of file contents into a list of strings
@@ -202,7 +203,7 @@ class StructureType:
 	'''
 	Function Name: _parseStemData()
 	Description: Internal method used by _loadFile() to parse all the stem information in the
-	structure type file into the StructureType object
+	structure type file into the Structureobject
 	Parameters: stemData - list - list of data from a line in the structure type file describing a stem
 	Return Type: None
 	'''
@@ -268,7 +269,7 @@ class StructureType:
 	'''
 	Function Name: _parseHairpinData()
 	Description: Internal method used by _loadFile() to parse all the hairpin information in the
-	structure type file into the StructureType object
+	structure type file into the Structureobject
 	Parameters: hairpinData - list - list of data from a line in the structure type file describing a hairpin
 	Return Type: None
 	'''
@@ -338,7 +339,7 @@ class StructureType:
 	'''
 	Function Name: _parseBulgeData()
 	Description: Internal method used by _loadFile() to parse all the bulge information in the
-	structure type file into the StructureType object
+	structure type file into the Structureobject
 	Parameters: bulgeData - list - list of data from a line in the structure type file describing a bulge
 	Return Type: None
 	'''
@@ -437,7 +438,7 @@ class StructureType:
 	'''
 	Function Name: _parseInnerLoopData()
 	Description: Internal method used by _loadFile() to parse all the inner loop information in the
-	structure type file into the StructureType object
+	structure type file into the Structureobject
 	Parameters: innerLoopData - list - list of data from a line in the structure type file describing an inner loop
 	Return Type: None
 	'''
@@ -550,7 +551,7 @@ class StructureType:
 	'''
 	Function Name: _parseExternalLoopData()
 	Description: Internal method used by _loadFile() to parse all the external loop information in the
-	structure type file into the StructureType object
+	structure type file into the Structureobject
 	Parameters: externalLoopData - list - list of data from a line in the structure type file describing an external loop
 	Return Type: None
 	'''
@@ -634,7 +635,7 @@ class StructureType:
 	'''
 	Function Name: _parseMultiLoopData()
 	Description: Internal method used by _loadFile() to parse all the multiloop information in the
-	structure type file into the StructureType object
+	structure type file into the Structureobject
 	Parameters: multiloopData - list - list of data from a line in the structure type file describing an MultiLoop
 	Return Type: None
 	'''
@@ -728,7 +729,7 @@ class StructureType:
 	'''
 	Function Name: _parseNCBPData()
 	Description: Internal method used by _loadFile() to parse all the NCBP information in the
-	structure type file into the StructureType object
+	structure type file into the Structureobject
 	Parameters: ncbpData - list - list of data from a line in the structure type file describing an NCBP
 	Return Type: None
 	'''
@@ -764,7 +765,7 @@ class StructureType:
 	'''
 	Function Name: _parseEndData()
 	Description: Internal method used by _loadFile() to parse all the End information in the
-	structure type file into the StructureType object
+	structure type file into the Structureobject
 	Parameters: endData - list - list of data from a line in the structure type file describing an end
 	Return Type: None
 	'''
@@ -905,7 +906,7 @@ class StructureType:
 
 	'''
 	Function Name: componentArray()
-	Description: function that returns the _componentArray for the StructureType object
+	Description: function that returns the _componentArray for the Structureobject
 	Parameters: None
 	Return Type: numpy array
 	'''
@@ -967,7 +968,7 @@ class StructureType:
 
 	'''
 	Function Name: DotBracket()
-	Description: function to get the Dot Bracket notation for the StructureType object
+	Description: function to get the Dot Bracket notation for the Structureobject
 	Parameters: None
 	Return Type: str
 	'''
@@ -1002,7 +1003,7 @@ class StructureType:
 
 	'''
 	Function Name: addStem()
-	Description: Function to add a new stem to the StructureType object
+	Description: Function to add a new stem to the Structureobject
 	Parameters: (stemLabel) - str - key for stem object in self._stems dictionary
 				(newStem) - Stem object - Stem object to be stored at given key in the self._stems dictionary
 	Return Value: None
@@ -1013,7 +1014,7 @@ class StructureType:
 
 	'''
 	Function Name: stemLabels()
-	Description: function to access all the stem labels for the StructureType object
+	Description: function to access all the stem labels for the Structureobject
 	Parameters: None
 	Return Type: list
 	'''
@@ -1023,7 +1024,7 @@ class StructureType:
 
 	'''
 	Function Name: stems(label=None)
-	Description: function to get all the stem objects in the StructureType object. If label is provided the stem object
+	Description: function to get all the stem objects in the Structureobject. If label is provided the stem object
 	with the matching label is returned.
 	Parameters: (label) - str - the label for the stem being searched for.
 	Return Type: list or Stem object
@@ -1037,7 +1038,7 @@ class StructureType:
 
 	'''
 	Function Name: numStems()
-	Description: function to get the number of stems in a StructureType object
+	Description: function to get the number of stems in a Structureobject
 	Parameters: None
 	Return Value: int
 	'''
@@ -1069,7 +1070,7 @@ class StructureType:
 
 	'''
 	Function Name: addHairpin(label, newHairpin)
-	Description: Function to add a new hairpin to the StructureType object
+	Description: Function to add a new hairpin to the Structureobject
 	Parameters: (label) - str - key for Hairpin object in self._hairpins dictionary
 				(newHairpin) - Hairpin object - Hairpin object to be stored at the given key in the self._haripins dicitonary
 	Return Type: None
@@ -1080,7 +1081,7 @@ class StructureType:
 
 	'''
 	Function Name: hairpinLabels()
-	Description: Function to access all the hairpin labels in the StructureType object
+	Description: Function to access all the hairpin labels in the Structureobject
 	Parameters: None
 	Return Type: list
 	'''
@@ -1090,7 +1091,7 @@ class StructureType:
 
 	'''
 	Function Name: hairpins()
-	Description: Function to get all Hairpin objects in the StructureType object. if label is provided, the Hairpin object with the
+	Description: Function to get all Hairpin objects in the Structureobject. if label is provided, the Hairpin object with the
 	matching label is returned.
 	Parameters: None
 	Return Type: list
@@ -1104,7 +1105,7 @@ class StructureType:
 
 	'''
 	Function Name: numHairpins()
-	Description: Function to get the number of hairpins in the StructureType object
+	Description: Function to get the number of hairpins in the Structureobject
 	Parameters: None
 	Return Type: int
 	'''
@@ -1134,7 +1135,7 @@ class StructureType:
 
 	'''
 	Function Name: addBulge(bulgeLabel, newBulge)
-	Description: Function to add a new Bulge object to the StructureType object
+	Description: Function to add a new Bulge object to the Structureobject
 	Parameters: (bulgeLabel) - str - the key value to be used for the new Bulge object
 				(newBulge) - Bulge Object - Bulge object to be stored at the given key in the self._bulges dictionary
 	Return Type: None
@@ -1145,7 +1146,7 @@ class StructureType:
 
 	'''
 	Function Name: bulgeLabels()
-	Description: Function to get all the bulge labels for the StructureType object
+	Description: Function to get all the bulge labels for the Structureobject
 	Parameters: None
 	Return Type: list
 	'''
@@ -1154,7 +1155,7 @@ class StructureType:
 
 	'''
 	Function Name: bulges()
-	Description: Function to get all the Bulge objects for the StructureType object
+	Description: Function to get all the Bulge objects for the Structureobject
 	Parameters: None
 	Return Type: list
 	'''
@@ -1166,7 +1167,7 @@ class StructureType:
 
 	'''
 	Function Name: numBulges()
-	Description: Function to get the number of bulges in a given StructureType object
+	Description: Function to get the number of bulges in a given Structureobject
 	Parameters: None
 	Return Type: int
 	'''
@@ -1196,7 +1197,7 @@ class StructureType:
 
 	'''
 	Function Name: addInnerLoop(parentLabel, subunitLabel, newInnerLoop)
-	Description: function to add a new InnerLoop object to the StructureType object
+	Description: function to add a new InnerLoop object to the Structureobject
 	Parameters: (parentLabel) - str - parent key value for the Inner loop to be added
 				(newInnerLoop) - InnerLoop object - InnerLoop object to be stored at the the given key
 				in the self._innerLoops dictionary
@@ -1208,7 +1209,7 @@ class StructureType:
 
 	'''
 	Function Name: innerLoopLabels()
-	Description: Function to return a list of all the inner loop labels in the StructureType object
+	Description: Function to return a list of all the inner loop labels in the Structure object
 	Parameters: None
 	Return Type: list
 	'''
@@ -1218,7 +1219,7 @@ class StructureType:
 
 	'''
 	Function Name: innerLoops()
-	Description: Function to return a list of the InnerLoop objects in the StructureType object
+	Description: Function to return a list of the InnerLoop objects in the Structure object
 	Parameters: None
 	Return Type: list
 	'''
@@ -1231,7 +1232,7 @@ class StructureType:
 
 	'''
 	Function Name: numInnerLoops()
-	Description: function to get the number of inner loops in a StructureType object
+	Description: function to get the number of inner loops in a Structure object
 	Parameters: None
 	Return Type: int
 	'''
@@ -1303,7 +1304,7 @@ class StructureType:
 
 	'''
 	Function Name: addMultiLoop(parentLabel, subunitLabel, newMultiLoop)
-	Description: function to add a new MultiLoop object to the StructureType object
+	Description: function to add a new MultiLoop object to the Structure object
 	Parameters: (parentLabel) - str - parent multiloop label for the multiloop to be added
 				(subunitLabel) - str - subunit label for the multiloop to be added
 				(newMultiLoop) - MultiLoop object - MultiLoop object to be added at the given key values
@@ -1373,7 +1374,7 @@ class StructureType:
 	'''
 	Function Name: multiloops()
 	Description: Function to return a list of tuples, where each tuple contains all the multiloop object subunits composing
-	each multiloop in the StructureType object
+	each multiloop in the Structure object
 	Parameters: None
 	Return Type: list of tuples
 	'''
@@ -1393,7 +1394,7 @@ class StructureType:
 
 	'''
 	Function Name: addExternalLoop(elLabel, newEL)
-	Description: function to add a new External Loop object to the StructureType object
+	Description: function to add a new External Loop object to the Structure object
 	Parameters: (elLabel) - str - the key value to be used for the new ExternalLoop object
 				(newEL) - ExternalLoop Object - External loop to be stored at given key value
 	Return Type: None
@@ -1403,7 +1404,7 @@ class StructureType:
 
 	'''
 	Function Name: externalLoopLabels()
-	Description: Function to return a list of the external loop labels for a StructureType object
+	Description: Function to return a list of the external loop labels for a Structure object
 	Parameters: none
 	Return Type: list
 	'''
@@ -1412,7 +1413,7 @@ class StructureType:
 
 	'''
 	Function Name: externalLoops()
-	Description: function to return a list of all the ExternalLoop Objects in a StructureType object
+	Description: function to return a list of all the ExternalLoop Objects in a Structure object
 	Parameters: None
 	Return Type: list
 	'''
@@ -1424,7 +1425,7 @@ class StructureType:
 
 	'''
 	Function Name: numExternalLoops()
-	Description: function to return the number of external loops in a StructureType object
+	Description: function to return the number of external loops in a Structure object
 	Parameters: None
 	Return Type: int
 	'''
@@ -1455,7 +1456,7 @@ class StructureType:
 
 	'''
 	Function Name: addNCBP(ncbpLabel, newNCBP)
-	Description: Function to add a new NCBP to the StructureType object
+	Description: Function to add a new NCBP to the Structure object
 	Parameters: (ncbpLabel) - str - label for the new NCBP
 				(newNCBP) - NCBP Object - NCBP object to be added
 	Return Type: None
@@ -1465,7 +1466,7 @@ class StructureType:
 
 	'''
 	Function Name: ncbpLabels()
-	Description: function to return a list of all the ncbp labels in a given StructureType object
+	Description: function to return a list of all the ncbp labels in a given Structure object
 	Parameters: None
 	Return Type: list
 	'''
@@ -1474,7 +1475,7 @@ class StructureType:
 
 	'''
 	Function Name: NCBPs()
-	Description: function to return a list of all the NCBPs in a StructureType object
+	Description: function to return a list of all the NCBPs in a Structure object
 	Parameters: None
 	Return Type: list
 	'''
@@ -1486,7 +1487,7 @@ class StructureType:
 
 	'''
 	Function Name: numNCBPs()
-	Description: Function to get the number of NCBP's in a given StructureType object
+	Description: Function to get the number of NCBP's in a given Structure object
 	Parameters: None
 	Return Type: int
 	'''
@@ -1517,7 +1518,7 @@ class StructureType:
 
 	'''
 	Function Name: addEnd(endLabel, newEnd)
-	Description: Function to add a new End to the StructureType object
+	Description: Function to add a new End to the Structure object
 	Parameters: (endLabel) - str - label for new End object
 				(newEnd) - End Object - new End object to be added
 	Return Type: None
@@ -1527,7 +1528,7 @@ class StructureType:
 
 	'''
 	Function Name: endLabels()
-	Description: Function to return a list of all the end labels for the StructureType object
+	Description: Function to return a list of all the end labels for the Structure object
 	Parameters: None
 	Return Type: list
 	'''
@@ -1536,7 +1537,7 @@ class StructureType:
 
 	'''
 	Function Name: ends()
-	Description: function to return a list of all the End objects for the StructureType object
+	Description: function to return a list of all the End objects for the Structure object
 	Parameters: None list
 	Return Type:
 	'''
@@ -1548,7 +1549,7 @@ class StructureType:
 
 	'''
 	Function Name: numEnds()
-	Description: function to get the number of ends in StructureType object
+	Description: function to get the number of ends in Structure object
 	Parameters: None
 	Return Type: int
 	'''
@@ -1583,7 +1584,7 @@ class StructureType:
 	Parameters: (label) - str - label of the feature to be accessed
 				(subLabel=None) - str - sublabel for components like innerloops and multiloops, default value is None
 				and it will not be used unless specified.
-	Return Type: returns a structureType Component
+	Return Type: returns a Structure Component
 	'''
 	def component(self, label):
 		if label[0] == 'S':
@@ -1602,7 +1603,7 @@ class StructureType:
 			return self._getInnerLoopByLabel(label)
 		else:
 			#if label is not handled by any of these blocks
-			print(f'Label: {label} not found in StructureType object.')
+			print(f'Label: {label} not found in Structure object.')
 			return None
 
 
