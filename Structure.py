@@ -1,20 +1,19 @@
 '''
-Filename: StructureType.py
+Filename: Structure.py
 Author: Michael Hathaway
 
 Description: python module that defines the Structure Object.
 The Structure Object provides a user friendly mechanism for working with
 RNA structure type files in the python programming language.
-
--Allow for manual contruction of STC subcomponents
 '''
 
 ## Module Imports ##
 import numpy as np
 import re
+import importlib
 
 ## Structure Type Component Imports ##
-from StructureComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
+from bpRNAStructure.StructureComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
 
 '''
 ## About the structure object ##

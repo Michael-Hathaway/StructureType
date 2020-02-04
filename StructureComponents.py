@@ -1,8 +1,8 @@
 '''
-Filename: StructureTypeComponents.py
+Filename: StructureComponents.py
 Author: Michael Hathaway
 
-Description: The StructureTypeComponents module defines individual classes for each of the secondary structures defined in the Structure
+Description: The Structure Components module defines individual classes for each of the secondary structures defined in the Structure
 Type file. These classes are: Stem, Bulge, Hairpin, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, and NCBP.
 '''
 
@@ -11,13 +11,13 @@ import numpy as np
 import logging
 
 ## Free Energy Parameter Imports ##
-from TurnerParameters.parameters.LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit #initiation parameters for internal loops, bulges, and hairpins
-from TurnerParameters.parameters.StackingEnergies import StackingEnergies #Watson-Crick stacking interaction parameters
-from TurnerParameters.parameters.InnerLoop_1x1_Energies import InnerLoop_1x1_Energies #Stabilities for 1x1 internal loops
-from TurnerParameters.parameters.InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 internal loops
-from TurnerParameters.parameters.InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
-from TurnerParameters.parameters.InnerLoopMismatches import InnerLoopMismatches_2x3, OtherInnerLoopMismtaches #energy values for 2x3 inner loop mismatches
-from TurnerParameters.parameters.StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
+from LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit #initiation parameters for internal loops, bulges, and hairpins
+from StackingEnergies import StackingEnergies #Watson-Crick stacking interaction parameters
+from InnerLoop_1x1_Energies import InnerLoop_1x1_Energies #Stabilities for 1x1 internal loops
+from InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 internal loops
+from InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
+from InnerLoopMismatches import InnerLoopMismatches_2x3, OtherInnerLoopMismtaches #energy values for 2x3 inner loop mismatches
+from StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
 
 ## Free Energy Parameter Constants ##
 INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value

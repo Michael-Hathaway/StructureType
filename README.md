@@ -1,6 +1,14 @@
 <h1> bpRNAStructure Module </h1>
 <p> Project for Hendrix Lab | Oregon State University </p>
 
+<h3>Usage</h3>
+<p>To use this module clone this directory onto your machine and add the path to the directory to your PYTHONPATH environment varibale. This can be done by adding the following lines to your .bashrc or .zshrc file:
+<ul>
+    <li>export PYTHONPATH="${PYTHONPATH}:/path/to/bpRNAStructure"</li>
+    <li>export PYTHONPATH="${PYTHONPATH}:/path/to/bpRNAStructure/TurnerParameters/parameters"</li>
+</ul>
+</p>
+
 <h3>About the bpRNAStructure Module</h3>
 <p> The bpRNAStructure Module is a python module that provides a user friendly mechanism for working with
 RNA structure type files in the python programming language. </p>
