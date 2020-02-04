@@ -7,6 +7,11 @@
     <li>export PYTHONPATH="${PYTHONPATH}:/path/to/bpRNAStructure"</li>
     <li>export PYTHONPATH="${PYTHONPATH}:/path/to/bpRNAStructure/TurnerParameters/parameters"</li>
 </ul>
+The Structure and StructureComponent modules can them be imported using:
+<ul>
+    <li>'import Structure as ST'</li>
+    <li>'import StructureComponents as STC'</li>
+</ul>
 </p>
 
 <h3>About the bpRNAStructure Module</h3>
