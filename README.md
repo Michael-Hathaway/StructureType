@@ -1,14 +1,14 @@
-<h1> StructureType Module </h1>
+<h1> bpRNAStructure Module </h1>
 <p> Project for Hendrix Lab | Oregon State University </p>
 
-<h3>About the StructureType Module</h3>
-<p> The StructureType module is a python module that provides a user friendly mechanism for working with
+<h3>About the bpRNAStructure Module</h3>
+<p> The bpRNAStructure Module is a python module that provides a user friendly mechanism for working with
 RNA structure type files in the python programming language. </p>
 
-<h4>StructureType.py</h4>
-<p>This file defines the StructureType object and includes functionality for parseing the Structure Type file, as well as for accessing all the information stored in it</p>
+<h4>Structure.py</h4>
+<p>This file defines the Structure object and includes functionality for parsing the Structure Type file, as well as for accessing all the information stored in it</p>
 
-<h4>StructureTypeComponents.py</h4>
+<h4>Structure Components.py</h4>
 <p>This file defines classes for all the secondary structures that are characterized in the Structure Type file. These secondary structures include: Stems, Bulges, Hairpins, InnerLoops, MultiLoops, ExternalLoops, PseudoKnots, Ends, and NCBPs. Each class provides specific functionality for accessing the information about each structure, as well as functionality for calculating the energy associated with each structure.</p>
 
 <h3>Turner Parameters</h3>
