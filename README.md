@@ -13,6 +13,15 @@ The Structure and StructureComponent modules can them be imported using:
     <li>'import StructureComponents as STC'</li>
 </ul>
 </p>
+<p>If that solution doesn't work, then try adding the following code at the beginning of a script using this package:<br>
+import sys <br>
+sys.path.insert(0, '/path/to/bpRNAStructure') <br>
+sys.path.insert(0, '/path/to/bpRNAStructure/TurnerParameters/parameters') <br>
+import Structure as ST <br>
+StructureComponents as STC <br>
+</p>
+
+<p>In the future this package will be available for download using pip </p>
 
 <h3>About bpRNAStructure</h3>
 <p> The bpRNAStructure package is a python package that provides a user friendly mechanism for working with
