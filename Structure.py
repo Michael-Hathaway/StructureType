@@ -13,7 +13,7 @@ import re
 import importlib
 
 ## Structure Type Component Imports ##
-from bpRNAStructure.StructureComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
+from StructureComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
 
 '''
 ## About the structure object ##
@@ -150,16 +150,17 @@ class Structure:
 			#varna notation for the molecule
 			elif all(i in ['K', 'N'] for i in line[:-1]):
 				self._varna = line[:-1] #drop the newline characters
-
-			#when all identifying data has been parsed, parse the StructureComponents
-			else:
+				#when all identifying data has been parsed, parse the StructureComponents
 				features = f.read() #read the rest of the file into features variable
 				break
+
+			else: #This will parse all features if the any identifying data is missing
+				features = f.read()
 
 
 		features = features.split('\n') #split rest of file contents into a list of strings
 		features = features[:-1] #remove the newline string at the end of the list
-
+		print(features)
 		for i in range(len(features)): #iterate through the individual string
 
 			##stems##
