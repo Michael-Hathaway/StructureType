@@ -420,6 +420,13 @@ class Bulge:
 	def closingPair3pSpan(self):
 		return self._closingPair3pSpan
 
+	#function to check for valid conditions for calculating bulge energy
+	def canonical(self):
+		if self._sequenceLen == 1:
+			if (self._closingPair5p not in StackingEnergies) or (self._closingPair3p not in StackingEnergies[self._closingPair5p]):
+				return False
+		return True
+
 	#function calculates the folding free energy change for the bulge
 	def energy(self, strict=True):
 		if self._sequenceLen == 1: #bulges of length 1
