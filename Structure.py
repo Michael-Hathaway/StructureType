@@ -160,7 +160,6 @@ class Structure:
 
 		features = features.split('\n') #split rest of file contents into a list of strings
 		features = features[:-1] #remove the newline string at the end of the list
-		print(features)
 		for i in range(len(features)): #iterate through the individual string
 
 			##stems##
