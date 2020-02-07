@@ -281,6 +281,12 @@ class Hairpin:
 	def hairpinPK(self):
 		return self._pk
 
+	#Function to check if the correct parameters are available to calculate the energy of the hairpin
+	def canonical(self):
+		if(self._closingPair not in StackTerminalMismatches) or (firstMismatch not in StackTerminalMismatches[self._closingPair]):
+			return False
+		return True
+
 	#function to calculate folding free energy of hairpin
 	def energy(self, strict=True):
 		#get hairpin initiation term
