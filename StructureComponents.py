@@ -284,6 +284,10 @@ class Hairpin:
 	#Function to check if the correct parameters are available to calculate the energy of the hairpin
 	def canonical(self):
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+		firstMismatch = (self._sequence[0], self._sequence[-1])
+>>>>>>> Added canonical feature to hairpin class.
 =======
 		firstMismatch = (self._sequence[0], self._sequence[-1])
 >>>>>>> Added canonical feature to hairpin class.
