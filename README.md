@@ -18,7 +18,7 @@ import sys <br>
 sys.path.insert(0, '/path/to/bpRNAStructure') <br>
 sys.path.insert(0, '/path/to/bpRNAStructure/TurnerParameters/parameters') <br>
 import Structure as ST <br>
-StructureComponents as STC <br>
+import StructureComponents as STC <br>
 </p>
 
 <p>In the future this package will be available for download using pip </p>
