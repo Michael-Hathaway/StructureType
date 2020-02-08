@@ -558,6 +558,37 @@ class InnerLoop:
 		return self._closingPairsSpan
 
 
+	#Function to check if valid parameters are available to calculate inner loop energy
+	def canonical(self):
+		#Check if energy value is present for 1x1 loop
+		if len(self._5pLoop) == 1 and len(self._3pLoop) == 1:
+			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop) in InnerLoop_1x1_Energies:
+				return True
+			return False
+		#check if energy value is present for 1x2 loop
+		elif len(self._5pLoop) == 1 and len(self._3pLoop) == 2:
+			if (self._closingPairs[0], self._closingPairs[1], self._5pLoop, self._3pLoop[1], self._3pLoop[0]) in InnerLoop_1x2_Energies:
+				return True
+			return False
+		#check if energy value is present for 2x1 loop
+		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 1:
+			if ((self._closingPairs[1][1], self._closingPairs[1][0]), (self._closingPairs[0][1], self._closingPairs[0][0]), self._3pLoop, self._5pLoop[1], self._5pLoop[0]) in InnerLoop_1x2_Energies:
+				return True
+			return False
+		#Check if energy value is present for 2x2 loop
+		elif len(self._5pLoop) == 2 and len(self._3pLoop) == 2:
+			loops = list(zip(list(self._5pLoop), list(self._3pLoop[::-1]))) #convert loop sequences to proper format for dictionary
+			if (self._closingPairs[0], self._closingPairs[1], loops[0], loops[1]) in InnerLoop_2x2_Energies:
+				return True
+			return False
+		#Check for valid parameters needed to calculate energy for loops of other lengths
+		else:
+			if(self._getInnerLoopMismtachEnergy() != None):
+				return True
+			return False
+
+
+
 	'''
 	Function Name: _getInnerLoopInitEnergy(self)
 	Description: Internal method to get the initiation energy parameter for Inner Loop energy function

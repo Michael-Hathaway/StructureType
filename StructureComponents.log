@@ -1,0 +1,8 @@
+22810 - WARNING - In energy() function for 3x2 InnerLoop: I2, no mismatch parameter for closing pair: ('G', 'C') and the 5' mismatch: ('A', 'C').
+22810 - WARNING - In energy() function for 3x2 InnerLoop: I2, no mismatch parameter for closing pair: ('G', 'C') and the 5' mismatch: ('A', 'C').
+22810 - WARNING - Inner Loop: I12, loop is 2x1, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+22810 - WARNING - Inner Loop: I13, loop is 2x2, but energy parameters is not present in InnerLoop_1x1_Energies dicitonary. Energy value calculated using _calcEnergy() function.
+22810 - WARNING - In energy() function for 2x3 InnerLoop: I19, no mismatch parameter for closing pair: ('U', 'G') and the 5' mismatch: ('A', 'A').
+22810 - WARNING - In energy() function for 2x3 InnerLoop: I19, no mismatch parameter for closing pair: ('U', 'G') and the 5' mismatch: ('A', 'A').
+22810 - WARNING - In energy() function for 3x2 InnerLoop: I2, no mismatch parameter for closing pair: ('G', 'C') and the 5' mismatch: ('A', 'C').
+22810 - WARNING - In energy() function for 2x3 InnerLoop: I19, no mismatch parameter for closing pair: ('U', 'G') and the 5' mismatch: ('A', 'A').
