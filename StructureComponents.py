@@ -141,10 +141,6 @@ class Stem:
 		else:
 			return self._sequence
 
-	#Function to check if all base pairs in a stem are canonical base pairings
-	def canonical(self):
-		return all(pair in CANONICAL_BASE_PAIRS for pair in self._sequence)
-
 	#function returns the length of the stem
 	def sequenceLen(self):
 		return self._sequenceLen
@@ -160,6 +156,10 @@ class Stem:
 	#function returns the start and stop indices of the 3' portion of the stem in a tuple. Ex: (start, stop)
 	def sequence3pSpan(self):
 		return self._sequence3p_span
+
+	#Function to check if all base pairs in a stem are canonical base pairings
+	def canonical(self):
+		return all(pair in CANONICAL_BASE_PAIRS for pair in self._sequence)
 
  	#function calculates the folding free energy change for the stem
 	def energy(self, strict=True, init=False):
