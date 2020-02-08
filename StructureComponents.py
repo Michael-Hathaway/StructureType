@@ -482,6 +482,17 @@ self._3pLoopSpan -- tuple(int, int) -- tuple containing the integer start and st
 self._closingPairs -- tuple((string, string), (string, string)) -- tuple with two nested tuples containing the closing pairs for the inner loop
 self._closingPairsSpan -- tuple((int, int), (int, int)) -- tuple with two nested tuples containing the index locations of the closing pairs for the inner loop
 self._strict -- bool -- boolean used to control whether energy is calculated strictly
+
+
+
+              CGC
+            AG   CU
+            ||   ||
+            UC   GA
+               A
+                 ^3' closing pair
+             ^5' closing pair
+			 
 '''
 class InnerLoop:
 	# __init__ method for InnerLoop object
