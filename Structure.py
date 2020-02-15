@@ -33,7 +33,7 @@ class Structure:
 		#structural representations of RNA molecule
 		#all values are stored as strings
 		self._sequence = None
-		self._DBNotation = None
+		self._DBN = None
 		self._structureArray = None
 		self._varna = None
 
@@ -141,7 +141,7 @@ class Structure:
 
 			#get Dot Bracket Notation for the molecule
 			elif all(i in ['(', ')', '[', ']', '.', '}', '{'] for i in line[:-1]):
-				self._DBNotation = line[:-1] #drop the newline character
+				self._DBN = line[:-1] #drop the newline character
 
 			#get Annotated symbol form of the molecule
 			elif all(i in ['S', 'B', 'E', 'I', 'M', 'H', 'X'] for i in line[:-1]):
@@ -972,7 +972,7 @@ class Structure:
 	Return Type: str
 	'''
 	def dotBracket(self):
-		return self._DBNotation
+		return self._DBN
 
 
 	'''

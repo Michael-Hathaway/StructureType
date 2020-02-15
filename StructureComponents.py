@@ -46,7 +46,11 @@ HAIRPIN_C_LOOP_B = 1.6
 #other Constants
 CANONICAL_BASE_PAIRS = [('A', 'U'), ('U', 'A'), ('G', 'C'), ('C', 'G'), ('G', 'U'), ('U', 'G')]
 
-#set logging configuration
+'''
+-- set logging configuration --
+Logging file will be used to record errors associated with the StructureComponent energy functions. These errors
+are usually related to missing parameters for the energy calculation.
+'''
 logging.basicConfig(filename='./StructureComponents.log', level=logging.WARNING, filemode='w', format='%(process)d - %(levelname)s - %(message)s')
 
 
@@ -77,14 +81,14 @@ self._sequence3p_index -- (int, int) -- tuple containing the integer value start
 '''
 class Stem:
 	# __init__ method for stem object
-	def __init__(self, label="", sequence5p="", sequence3p="", sequence5p_span=(-1, -1), sequence3p_span=(-1, -1)):
+	def __init__(self, label="", sequence5p="", sequence3p="", sequence5pSpan=(-1, -1), sequence3pSpan=(-1, -1)):
 		self._label = label #sequence label
 		self._sequence5p = sequence5p #5' portion of stem
 		self._sequence3p = sequence3p #3' portion of stem
 		self._sequence = list(zip(list(self._sequence5p), list(self._sequence3p[::-1])))
 		self._sequenceLen = (len(sequence5p) + len(sequence3p)) // 2 #sequence length
-		self._sequence5p_span = sequence5p_span #tuple containing start and stop indices of 5' prime portion of stem
-		self._sequence3p_span = sequence3p_span #tuple containing start and stop indices of 3' prime portion of stem
+		self._sequence5pSpan = sequence5pSpan #tuple containing start and stop indices of 5' prime portion of stem
+		self._sequence3pSpan = sequence3pSpan #tuple containing start and stop indices of 3' prime portion of stem
 
 	#define string representation of object
 	def __str__(self):
@@ -147,21 +151,21 @@ class Stem:
 
 	#function returns a tuple containing two tuples that contain start and stop indices for the 5' and 3' sequence of the stem
 	def span(self):
-		return (self._sequence5p_span, self._sequence3p_span)
+		return (self._sequence5pSpan, self._sequence3pSpan)
 
 	#function returns the start and stop indices of the 5' portion of the stem in a tuple. Ex: (start, stop)
 	def sequence5pSpan(self):
-		return self._sequence5p_span
+		return self._sequence5pSpan
 
 	#function returns the start and stop indices of the 3' portion of the stem in a tuple. Ex: (start, stop)
 	def sequence3pSpan(self):
-		return self._sequence3p_span
+		return self._sequence3pSpan
 
 	#Function to check if all base pairs in a stem are canonical base pairings
 	def canonical(self):
 		return all(pair in CANONICAL_BASE_PAIRS for pair in self._sequence)
 
- 	#function calculates the folding free energy change for the stem
+        #function calculates the folding free energy change for the stem
 	def energy(self, strict=True, init=False):
 		seq = self.sequence() #get stem as list of tuple base pairs
 
@@ -492,7 +496,7 @@ self._strict -- bool -- boolean used to control whether energy is calculated str
                A
                  ^3' closing pair
              ^5' closing pair
-			 
+
 '''
 class InnerLoop:
 	# __init__ method for InnerLoop object
