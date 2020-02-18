@@ -74,6 +74,10 @@ class Structure:
 	def __str__(self):
 		return f'RNA: {self._name}'
 
+	#define len function for Structure object
+	def __len__(self):
+		return self._length
+
 
 ###########################
 ###### Load File ##########
@@ -83,8 +87,10 @@ class Structure:
 	Function Name: loadFile(filename)
 	Description: user accessible function that can be used to load data from a structure type file into
 	the Structureobject if no file is provided at object instantiation.
-	Parameters: (filename) - str - name of the structure type file to be loaded into the object
-	Return Type: None
+	Parameters:
+			(filename) - str - name of the structure type file to be loaded into the object
+	Return Type:
+			None
 	'''
 	def loadFile(self, filename):
 		self._loadFile(filename)
@@ -93,8 +99,10 @@ class Structure:
 	'''
 	Function Name: _loadFile(filename)
 	Description: Internal method to parse the data in an RNA structure tyoe file into a Structureobject
-	Parameters: (filename) - str, name of the file to be parsed
-	Return Type: StructureType
+	Parameters:
+			(filename) - str, name of the file to be parsed
+	Return Type:
+			Structure object
 
 	#Note: At this point, the data on segments and pseudoknots is not parsed from the .st file
 	'''
@@ -140,7 +148,7 @@ class Structure:
 				self._sequence = line[:-1] #drop the newline character
 
 			#get Dot Bracket Notation for the molecule
-			elif all(i in ['(', ')', '[', ']', '.', '}', '{'] for i in line[:-1]):
+			elif all(i in ['(', ')', '[', ']', '.', '}', '{', '<', '>', 'a', 'A'] for i in line[:-1]):
 				self._DBN = line[:-1] #drop the newline character
 
 			#get Annotated symbol form of the molecule
@@ -203,8 +211,10 @@ class Structure:
 	Function Name: _parseStemData()
 	Description: Internal method used by _loadFile() to parse all the stem information in the
 	structure type file into the Structureobject
-	Parameters: stemData - list - list of data from a line in the structure type file describing a stem
-	Return Type: None
+	Parameters:
+			(stemData) - list - list of data from a line in the structure type file describing a stem
+	Return Type:
+			None
 	'''
 	def _parseStemData(self, stemData):
 		#get stem Label
@@ -269,8 +279,10 @@ class Structure:
 	Function Name: _parseHairpinData()
 	Description: Internal method used by _loadFile() to parse all the hairpin information in the
 	structure type file into the Structureobject
-	Parameters: hairpinData - list - list of data from a line in the structure type file describing a hairpin
-	Return Type: None
+	Parameters:
+			(hairpinData) - list - list of data from a line in the structure type file describing a hairpin
+	Return Type:
+			None
 	'''
 	def _parseHairpinData(self, hairpinData):
 		#get hairpin label
@@ -339,8 +351,10 @@ class Structure:
 	Function Name: _parseBulgeData()
 	Description: Internal method used by _loadFile() to parse all the bulge information in the
 	structure type file into the Structureobject
-	Parameters: bulgeData - list - list of data from a line in the structure type file describing a bulge
-	Return Type: None
+	Parameters:
+			(bulgeData) - list - list of data from a line in the structure type file describing a bulge
+	Return Type:
+			None
 	'''
 	def _parseBulgeData(self, bulgeData):
 		#get bulge label
@@ -438,8 +452,10 @@ class Structure:
 	Function Name: _parseInnerLoopData()
 	Description: Internal method used by _loadFile() to parse all the inner loop information in the
 	structure type file into the Structureobject
-	Parameters: innerLoopData - list - list of data from a line in the structure type file describing an inner loop
-	Return Type: None
+	Parameters:
+			(innerLoopData) - list - list of data from a line in the structure type file describing an inner loop
+	Return Type:
+			None
 	'''
 	def _parseInnerLoopData(self, loop1, loop2):
 		#get Inner Loop parent Label
@@ -551,8 +567,10 @@ class Structure:
 	Function Name: _parseExternalLoopData()
 	Description: Internal method used by _loadFile() to parse all the external loop information in the
 	structure type file into the Structureobject
-	Parameters: externalLoopData - list - list of data from a line in the structure type file describing an external loop
-	Return Type: None
+	Parameters:
+			(externalLoopData) - list - list of data from a line in the structure type file describing an external loop
+	Return Type:
+			None
 	'''
 	def _parseExternalLoopData(self, externalLoopData):
 		#get label for external loop
@@ -635,8 +653,10 @@ class Structure:
 	Function Name: _parseMultiLoopData()
 	Description: Internal method used by _loadFile() to parse all the multiloop information in the
 	structure type file into the Structureobject
-	Parameters: multiloopData - list - list of data from a line in the structure type file describing an MultiLoop
-	Return Type: None
+	Parameters:
+			(multiloopData) - list - list of data from a line in the structure type file describing an MultiLoop
+	Return Type:
+			None
 	'''
 	def _parseMultiLoopData(self, multiloopData):
 		#get MultiLoop parent Label
@@ -729,8 +749,10 @@ class Structure:
 	Function Name: _parseNCBPData()
 	Description: Internal method used by _loadFile() to parse all the NCBP information in the
 	structure type file into the Structureobject
-	Parameters: ncbpData - list - list of data from a line in the structure type file describing an NCBP
-	Return Type: None
+	Parameters:
+			(ncbpData) - list - list of data from a line in the structure type file describing an NCBP
+	Return Type:
+			None
 	'''
 	def _parseNCBPData(self, ncbpData):
 		#get label for ncbp
@@ -765,8 +787,10 @@ class Structure:
 	Function Name: _parseEndData()
 	Description: Internal method used by _loadFile() to parse all the End information in the
 	structure type file into the Structureobject
-	Parameters: endData - list - list of data from a line in the structure type file describing an end
-	Return Type: None
+	Parameters:
+			(endData) - list - list of data from a line in the structure type file describing an end
+	Return Type:
+			None
 	'''
 	def _parseEndData(self, endData):
 		#get label for End
@@ -832,8 +856,10 @@ class Structure:
 	'''
 	Function Name: _addStemToComponentArray(stem)
 	Description: Internal method used in _loadFile() that adds a given stem to the component array
-	Parameters: (stem) - Stem object - stem to be added to the component array
-	Return Type: None
+	Parameters:
+			(stem) - Stem object - stem to be added to the component array
+	Return Type:
+			None
 	'''
 	def _addStemToComponentArray(self, stem):
 		for i in range(stem.sequence5pSpan()[0]-1, stem.sequence5pSpan()[1]):
@@ -845,8 +871,10 @@ class Structure:
 	'''
 	Function Name: _addBulgeToComponentArray(bulge)
 	Description:  Internal method used in _loadFile() that adds a given bulge to the component array
-	Parameters: (bulge) - Bulge object - bulge to be added to the component array
-	Return Type: None
+	Parameters:
+			(bulge) - Bulge object - bulge to be added to the component array
+	Return Type:
+			None
 	'''
 	def _addBulgeToComponentArray(self, bulge):
 		for i in range(bulge.span()[0]-1, bulge.span()[1]):
@@ -855,8 +883,10 @@ class Structure:
 	'''
 	Function Name: _addHairpinToComponentArray(hairpin)
 	Description: Internal method used in _loadFile() that adds a hairpin to the component array
-	Parameters: (hairpin) - Hairpin object - hairpin to be added to the component array
-	Return Type: None
+	Parameters:
+			(hairpin) - Hairpin object - hairpin to be added to the component array
+	Return Type:
+			None
 	'''
 	def _addHairpinToComponentArray(self, hairpin):
 		for i in range(hairpin.span()[0]-1, hairpin.span()[1]):
@@ -865,8 +895,10 @@ class Structure:
 	'''
 	Function Name: _addEndToComponentArray(end)
 	Description: Internal method used in _loadFile() that adds an end to the component array
-	Parameters: (end) - End object - end to be added to the component array
-	Return Type: None
+	Parameters:
+			(end) - End object - end to be added to the component array
+	Return Type:
+			None
 	'''
 	def _addEndToComponentArray(self, end):
 		for i in range(end.span()[0]-1, end.span()[1],):
@@ -875,8 +907,10 @@ class Structure:
 	'''
 	Function Name: _addInnerLoopToComponentArray(innerLoop)
 	Description: Internal method used in _loadFile() that adds an inner loop to the component array
-	Parameters: (innerLoop) - InnerLoop object - inner loop to be added to the component array
+	Parameters:
+			(innerLoop) - InnerLoop object - inner loop to be added to the component array
 	Return Type:
+			None
 	'''
 	def _addInnerLoopToComponentArray(self, innerLoop):
 		for pair in innerLoop.span():
@@ -886,8 +920,10 @@ class Structure:
 	'''
 	Function Name: _addExternalLoopToComponentArray(el)
 	Description: Internal method used in _loadFile() that adds an external loop to the component array
-	Parameters: (el) - ExternalLoop object - External loop to be added to the component array
-	Return Type: None
+	Parameters:
+			(el) - ExternalLoop object - External loop to be added to the component array
+	Return Type:
+			None
 	'''
 	def _addExternalLoopToComponentArray(self, el):
 		for i in range(el.span()[0]-1, el.span()[1]):
@@ -896,8 +932,10 @@ class Structure:
 	'''
 	Function Name: _addMultiLoopToComponentArray(multiloop)
 	Description: Internal method used in _loadFile() that adds an multiloop to the component array
-	Parameters: (multiloop) - MultiLoop object - multiloop to be added to the component array
-	Return Type: None
+	Parameters:
+			(multiloop) - MultiLoop object - multiloop to be added to the component array
+	Return Type:
+	 		None
 	'''
 	def _addMultiLoopToComponentArray(self, multiloop):
 		for i in range(multiloop.span()[0]-1, multiloop.span()[1]):
@@ -906,8 +944,10 @@ class Structure:
 	'''
 	Function Name: componentArray()
 	Description: function that returns the _componentArray for the Structureobject
-	Parameters: None
-	Return Type: numpy array
+	Parameters:
+			None
+	Return Type:
+			numpy array
 	'''
 	def componentArray(self):
 		return self._componentArray
@@ -926,8 +966,10 @@ class Structure:
 	'''
 	Function Name: Name()
 	Description: Function returns that name of the RNA molecule represented in the .st file
-	Parameters: None
-	Return Type: str
+	Parameters:
+			None
+	Return Type:
+			str
 	'''
 	def name(self):
 		return self._name
@@ -935,8 +977,10 @@ class Structure:
 	'''
 	Function Name: Length()
 	Description: Function returns the length of the RNA sequence represented in the .st file
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+			int
 	'''
 	def length(self):
 		return self._length
@@ -944,8 +988,10 @@ class Structure:
 	'''
 	Function Name: PageNum()
 	Description: Function returns the page number for the RNA molecule represented in the .st file
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+			int
 	'''
 	def pageNum(self):
 		return self._pageNum
@@ -959,8 +1005,10 @@ class Structure:
 	'''
 	Function Name: Sequence()
 	Description: Function returns the RNA sequence(A,U,G,C) for the RNA molecule represented in the .st file
-	Parameters: None
-	Return Type: str
+	Parameters:
+			None
+	Return Type:
+			str
 	'''
 	def sequence(self):
 		return self._sequence
@@ -968,8 +1016,10 @@ class Structure:
 	'''
 	Function Name: DotBracket()
 	Description: function to get the Dot Bracket notation for the Structureobject
-	Parameters: None
-	Return Type: str
+	Parameters:
+			None
+	Return Type:
+			str
 	'''
 	def dotBracket(self):
 		return self._DBN
@@ -978,8 +1028,10 @@ class Structure:
 	'''
 	Function Name: StructureArray()
 	Description: Function to get the structure Array for the StructureTyoe object
-	Parameters: None
-	Return Type: str
+	Parameters:
+			None
+	Return Type:
+			str
 	'''
 	def structureArray(self):
 		return self._structureArray
@@ -988,8 +1040,10 @@ class Structure:
 	'''
 	Function Name: VARNA()
 	Description:
-	Parameters: None
-	Return Type: str
+	Parameters:
+			None
+	Return Type:
+	 		str
 	'''
 	def VARNA(self):
 		return self._varna
@@ -1003,9 +1057,11 @@ class Structure:
 	'''
 	Function Name: addStem()
 	Description: Function to add a new stem to the Structureobject
-	Parameters: (stemLabel) - str - key for stem object in self._stems dictionary
-				(newStem) - Stem object - Stem object to be stored at given key in the self._stems dictionary
-	Return Value: None
+	Parameters:
+			(stemLabel) - str - key for stem object in self._stems dictionary
+			(newStem) - Stem object - Stem object to be stored at given key in the self._stems dictionary
+	Return Value:
+			None
 	'''
 	def addStem(self, stemLabel, newStem):
 		self._stems[stemLabel] = newStem
@@ -1014,8 +1070,10 @@ class Structure:
 	'''
 	Function Name: stemLabels()
 	Description: function to access all the stem labels for the Structureobject
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+			list
 	'''
 	def stemLabels(self):
 		return list(self._stems.keys())
@@ -1025,8 +1083,10 @@ class Structure:
 	Function Name: stems(label=None)
 	Description: function to get all the stem objects in the Structureobject. If label is provided the stem object
 	with the matching label is returned.
-	Parameters: (label) - str - the label for the stem being searched for.
-	Return Type: list or Stem object
+	Parameters:
+			(label=None) - str - the label for the stem being searched for.
+	Return Type:
+			list or Stem object
 	'''
 	def stems(self, label=None):
 		if label:
@@ -1038,8 +1098,10 @@ class Structure:
 	'''
 	Function Name: numStems()
 	Description: function to get the number of stems in a Structureobject
-	Parameters: None
-	Return Value: int
+	Parameters:
+	 		None
+	Return Value:
+	 		int
 	'''
 	def numStems(self):
 		return len(self._stems)
@@ -1048,8 +1110,10 @@ class Structure:
 	'''
 	Function Name: getStemByLabel(stemLabel)
 	Description: Function to get a particular Stem object based on its label
-	Parameters: (stemLabel) - str - label for Stem to be accessed
-	Return Value: Stem object
+	Parameters:
+			(stemLabel) - str - label for Stem to be accessed
+	Return Value:
+	 		Stem object
 	'''
 	def _getStemByLabel(self, stemLabel):
 		try:
@@ -1070,9 +1134,11 @@ class Structure:
 	'''
 	Function Name: addHairpin(label, newHairpin)
 	Description: Function to add a new hairpin to the Structureobject
-	Parameters: (label) - str - key for Hairpin object in self._hairpins dictionary
-				(newHairpin) - Hairpin object - Hairpin object to be stored at the given key in the self._haripins dicitonary
-	Return Type: None
+	Parameters:
+			(label) - str - key for Hairpin object in self._hairpins dictionary
+			(newHairpin) - Hairpin object - Hairpin object to be stored at the given key in the self._haripins dicitonary
+	Return Type:
+			None
 	'''
 	def addHairpin(self, label, newHairpin):
 		self._hairpins[label] = newHairpin
@@ -1081,8 +1147,10 @@ class Structure:
 	'''
 	Function Name: hairpinLabels()
 	Description: Function to access all the hairpin labels in the Structureobject
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def hairpinLabels(self):
 		return list(self._hairpins.keys())
@@ -1092,8 +1160,10 @@ class Structure:
 	Function Name: hairpins()
 	Description: Function to get all Hairpin objects in the Structureobject. if label is provided, the Hairpin object with the
 	matching label is returned.
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def hairpins(self, label=None):
 		if label:
@@ -1105,8 +1175,10 @@ class Structure:
 	'''
 	Function Name: numHairpins()
 	Description: Function to get the number of hairpins in the Structureobject
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+	 		int
 	'''
 	def numHairpins(self):
 		return len(self._hairpins)
@@ -1114,8 +1186,10 @@ class Structure:
 	'''
 	Function Name: getHairpinByLabel(hairpinLabel)
 	Description: Function to access a particular Hairpin Object based on its label
-	Parameters: (hairpinLabel) - str - label for hairpin to accessed
-	Return Type: Hairpin Object
+	Parameters:
+			(hairpinLabel) - str - label for hairpin to accessed
+	Return Type:
+	 		Hairpin Object
 	'''
 	def _getHairpinByLabel(self, hairpinLabel):
 		try:
@@ -1135,9 +1209,11 @@ class Structure:
 	'''
 	Function Name: addBulge(bulgeLabel, newBulge)
 	Description: Function to add a new Bulge object to the Structureobject
-	Parameters: (bulgeLabel) - str - the key value to be used for the new Bulge object
-				(newBulge) - Bulge Object - Bulge object to be stored at the given key in the self._bulges dictionary
-	Return Type: None
+	Parameters:
+			(bulgeLabel) - str - the key value to be used for the new Bulge object
+			(newBulge) - Bulge Object - Bulge object to be stored at the given key in the self._bulges dictionary
+	Return Type:
+	 		None
 	'''
 	def addBulge(self, bulgeLabel, newBulge):
 		self._bulges[bulgeLabel] = newBulge
@@ -1146,8 +1222,10 @@ class Structure:
 	'''
 	Function Name: bulgeLabels()
 	Description: Function to get all the bulge labels for the Structureobject
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def bulgeLabels(self):
 		return list(self._bulges.keys())
@@ -1155,8 +1233,10 @@ class Structure:
 	'''
 	Function Name: bulges()
 	Description: Function to get all the Bulge objects for the Structureobject
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def bulges(self, label=None):
 		if label:
@@ -1167,8 +1247,10 @@ class Structure:
 	'''
 	Function Name: numBulges()
 	Description: Function to get the number of bulges in a given Structureobject
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+	 		int
 	'''
 	def numBulges(self):
 		return len(self._bulges)
@@ -1176,8 +1258,10 @@ class Structure:
 	'''
 	Function Name: getBulgeByLabel(bulgeLabel)
 	Description: Function to access a particular Bulge object based on its label
-	Parameters: (bulgeLabel) - str - label for Bulge object to be accessed
-	Return Type: Bulge object
+	Parameters:
+			(bulgeLabel) - str - label for Bulge object to be accessed
+	Return Type:
+	 		Bulge object
 	'''
 	def _getBulgeByLabel(self, bulgeLabel):
 		try:
@@ -1197,10 +1281,11 @@ class Structure:
 	'''
 	Function Name: addInnerLoop(parentLabel, subunitLabel, newInnerLoop)
 	Description: function to add a new InnerLoop object to the Structureobject
-	Parameters: (parentLabel) - str - parent key value for the Inner loop to be added
-				(newInnerLoop) - InnerLoop object - InnerLoop object to be stored at the the given key
-				in the self._innerLoops dictionary
-	Return Type: None
+	Parameters:
+			(parentLabel) - str - parent key value for the Inner loop to be added
+			(newInnerLoop) - InnerLoop object - InnerLoop object to be stored at the the given key in the self._innerLoops dictionary
+	Return Type:
+			None
 	'''
 	def addInnerLoop(self, parentLabel, newInnerLoop):
 		self._innerLoops[parentLabel] = newInnerLoop
@@ -1209,8 +1294,10 @@ class Structure:
 	'''
 	Function Name: innerLoopLabels()
 	Description: Function to return a list of all the inner loop labels in the Structure object
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def innerLoopLabels(self):
 		return list(self._innerLoops.keys())
@@ -1219,8 +1306,10 @@ class Structure:
 	'''
 	Function Name: innerLoops()
 	Description: Function to return a list of the InnerLoop objects in the Structure object
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+			list
 	'''
 	def innerLoops(self, label=None):
 		if label:
@@ -1232,8 +1321,10 @@ class Structure:
 	'''
 	Function Name: numInnerLoops()
 	Description: function to get the number of inner loops in a Structure object
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+	 		int
 	'''
 	def numInnerLoops(self):
 		return len(self._innerLoops)
@@ -1242,8 +1333,10 @@ class Structure:
 	'''
 	Function Name: getInnerLoopByLabel(label)
 	Description: returns InnerLoop object stored at the given key value
-	Parameters: (label) - str - the key value for the inner loop to be accessed
-	Return Type: tuple(InnerLoop object, InnerLoop object)
+	Parameters:
+			(label) - str - the key value for the inner loop to be accessed
+	Return Type:
+	 		InnerLoop object
 	'''
 	def _getInnerLoopByLabel(self, label):
 		try:
@@ -1257,9 +1350,11 @@ class Structure:
 	'''
 	Function Name: getInnerLoopSubunitByLabel(parentLabel, subunitLabel)
 	Description:
-	Parameters: (parentLabel) - str - parent label for inner loop object
-				(subunitLabel) - str - subunit label for the inner loop object
-	Return Type: dictionary with the following subunit information
+	Parameters:
+	 		(parentLabel) - str - parent label for inner loop object
+			(subunitLabel) - str - subunit label for the inner loop object
+	Return Type:
+			dictionary with the following subunit information
 
 				{
 					'label' : ,
@@ -1304,10 +1399,12 @@ class Structure:
 	'''
 	Function Name: addMultiLoop(parentLabel, subunitLabel, newMultiLoop)
 	Description: function to add a new MultiLoop object to the Structure object
-	Parameters: (parentLabel) - str - parent multiloop label for the multiloop to be added
-				(subunitLabel) - str - subunit label for the multiloop to be added
-				(newMultiLoop) - MultiLoop object - MultiLoop object to be added at the given key values
-	Return Type: None
+	Parameters:
+			(parentLabel) - str - parent multiloop label for the multiloop to be added
+			(subunitLabel) - str - subunit label for the multiloop to be added
+			(newMultiLoop) - MultiLoop object - MultiLoop object to be added at the given key values
+	Return Type:
+	 		None
 	'''
 	def addMultiLoop(self, parentLabel, subunitLabel, newMultiLoop):
 		if parentLabel not in self._multiLoops.keys():
@@ -1318,8 +1415,10 @@ class Structure:
 	'''
 	Function Name: numMultiLoops()
 	Description: Function to get the number of multiloops in a StructureTyoe object
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+	 		int
 	'''
 	def numMultiLoops(self):
 		return len(self._multiLoops)
@@ -1328,8 +1427,10 @@ class Structure:
 	'''
 	Function Name: getMultiLoopByLabel(label)
 	Description: returns a tuple containing the subunits of the MultiLoop stored at the given key value
-	Parameters: (label) - str - parent label for the multiloop to be accessed
-	Return Type: tuple(MultiLoop Object, ... , MultiLoop Object)
+	Parameters:
+			(label) - str - parent label for the multiloop to be accessed
+	Return Type:
+	 		tuple(MultiLoop Object, ... , MultiLoop Object)
 	'''
 	def getMultiLoopByLabel(self, label):
 		try:
@@ -1342,9 +1443,11 @@ class Structure:
 	'''
 	Function Name: getMultiLoopSubunitByLabel(parentLabel, subunitLabel)
 	Description: Function to access a particular subunit for a given multiloop
-	Parameters: (parentLabel) - str - parent label for the multiloop to be accessed
-				(subunitLabel) - str - subunit label for the multiloop to be accessed
-	Return Type: MultiLoop object
+	Parameters:
+			(parentLabel) - str - parent label for the multiloop to be accessed
+			(subunitLabel) - str - subunit label for the multiloop to be accessed
+	Return Type:
+	 		MultiLoop object
 	'''
 	def getMultiLoopSubunitByLabel(self, parentLabel, subunitLabel):
 		try:
@@ -1358,8 +1461,10 @@ class Structure:
 	Function Name: multiloopLabels()
 	Description: function to return a list of 2-value tuple where the first value is the parent label for a multiloop
 	and the second value is the subunit label for a multioop
-	Parameters: None
-	Return Type: list of tuples
+	Parameters:
+	 		None
+	Return Type:
+	 		list of tuples
 	'''
 	def multilooplabels(self):
 		labels = []
@@ -1374,8 +1479,10 @@ class Structure:
 	Function Name: multiloops()
 	Description: Function to return a list of tuples, where each tuple contains all the multiloop object subunits composing
 	each multiloop in the Structure object
-	Parameters: None
-	Return Type: list of tuples
+	Parameters:
+			None
+	Return Type:
+	 		list of tuples
 	'''
 	def multiloops(self):
 		loops = []
@@ -1394,9 +1501,11 @@ class Structure:
 	'''
 	Function Name: addExternalLoop(elLabel, newEL)
 	Description: function to add a new External Loop object to the Structure object
-	Parameters: (elLabel) - str - the key value to be used for the new ExternalLoop object
-				(newEL) - ExternalLoop Object - External loop to be stored at given key value
-	Return Type: None
+	Parameters:
+			(elLabel) - str - the key value to be used for the new ExternalLoop object
+			(newEL) - ExternalLoop Object - External loop to be stored at given key value
+	Return Type:
+	 		None
 	'''
 	def addExternalLoop(self, elLabel, newEL):
 		self._externalLoops[elLabel] = newEL
@@ -1404,8 +1513,10 @@ class Structure:
 	'''
 	Function Name: externalLoopLabels()
 	Description: Function to return a list of the external loop labels for a Structure object
-	Parameters: none
-	Return Type: list
+	Parameters:
+			none
+	Return Type:
+	 		list
 	'''
 	def externalLoopLabels(self):
 		return list(self._externalLoops.keys())
@@ -1413,8 +1524,10 @@ class Structure:
 	'''
 	Function Name: externalLoops()
 	Description: function to return a list of all the ExternalLoop Objects in a Structure object
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def externalLoops(self, label=None):
 		if label:
@@ -1425,8 +1538,10 @@ class Structure:
 	'''
 	Function Name: numExternalLoops()
 	Description: function to return the number of external loops in a Structure object
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+	 		int
 	'''
 	def numExternalLoops(self):
 		return len(self._externalLoops)
@@ -1434,8 +1549,10 @@ class Structure:
 	'''
 	Function Name: getExternalLoopByLabel(elLabel)
 	Description: Function to access a particular ExternalLoop Object based on its label
-	Parameters: (elLabel) - str - label for the ExternalLoop to be accessed
-	Return Type: ExternalLoop object
+	Parameters:
+			(elLabel) - str - label for the ExternalLoop to be accessed
+	Return Type:
+	 		ExternalLoop object
 	'''
 	def _getExternalLoopByLabel(self, elLabel):
 		try:
@@ -1456,9 +1573,11 @@ class Structure:
 	'''
 	Function Name: addNCBP(ncbpLabel, newNCBP)
 	Description: Function to add a new NCBP to the Structure object
-	Parameters: (ncbpLabel) - str - label for the new NCBP
-				(newNCBP) - NCBP Object - NCBP object to be added
-	Return Type: None
+	Parameters:
+			(ncbpLabel) - str - label for the new NCBP
+			(newNCBP) - NCBP Object - NCBP object to be added
+	Return Type:
+	 		None
 	'''
 	def addNCBP(self, ncbpLabel, newNCBP):
 		self._ncbp[ncbpLabel] = newNCBP
@@ -1466,8 +1585,10 @@ class Structure:
 	'''
 	Function Name: ncbpLabels()
 	Description: function to return a list of all the ncbp labels in a given Structure object
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def ncbpLabels(self):
 		return list(self._ncbp.keys())
@@ -1475,8 +1596,10 @@ class Structure:
 	'''
 	Function Name: NCBPs()
 	Description: function to return a list of all the NCBPs in a Structure object
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def NCBPs(self, label=None):
 		if label:
@@ -1487,8 +1610,10 @@ class Structure:
 	'''
 	Function Name: numNCBPs()
 	Description: Function to get the number of NCBP's in a given Structure object
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+	 		int
 	'''
 	def numNCBPs(self):
 		return len(self._ncbp)
@@ -1496,8 +1621,10 @@ class Structure:
 	'''
 	Function Name: getNCBPByLabel(ncbpLabel)
 	Description: Function to get a particular NCBP object based on its label
-	Parameters: (ncbpLabel) - str - label for NCBP object to be accessed
-	Return Type: NCBP object
+	Parameters:
+			(ncbpLabel) - str - label for NCBP object to be accessed
+	Return Type:
+	 		NCBP object
 	'''
 	def getNCBPByLabel(self, ncbpLabel):
 		try:
@@ -1518,9 +1645,11 @@ class Structure:
 	'''
 	Function Name: addEnd(endLabel, newEnd)
 	Description: Function to add a new End to the Structure object
-	Parameters: (endLabel) - str - label for new End object
-				(newEnd) - End Object - new End object to be added
-	Return Type: None
+	Parameters:
+			(endLabel) - str - label for new End object
+			(newEnd) - End Object - new End object to be added
+	Return Type:
+	 		None
 	'''
 	def addEnd(self, endLabel, newEnd):
 		self._ends[endLabel] = newEnd
@@ -1528,8 +1657,10 @@ class Structure:
 	'''
 	Function Name: endLabels()
 	Description: Function to return a list of all the end labels for the Structure object
-	Parameters: None
-	Return Type: list
+	Parameters:
+			None
+	Return Type:
+	 		list
 	'''
 	def endLabels(self):
 		return list(self._ends.keys())
@@ -1537,8 +1668,10 @@ class Structure:
 	'''
 	Function Name: ends()
 	Description: function to return a list of all the End objects for the Structure object
-	Parameters: None list
+	Parameters:
+			(label=None) - str - label for the end being accessed
 	Return Type:
+			End object or list
 	'''
 	def ends(self, label=None):
 		if label:
@@ -1549,8 +1682,10 @@ class Structure:
 	'''
 	Function Name: numEnds()
 	Description: function to get the number of ends in Structure object
-	Parameters: None
-	Return Type: int
+	Parameters:
+			None
+	Return Type:
+	 		int
 	'''
 	def numEnds(self):
 		return len(self._ends)
@@ -1558,8 +1693,10 @@ class Structure:
 	'''
 	Function Name: getEndByLabel(endLabel)
 	Description: function to access a particular End Object based on its label
-	Parameters: (endLabel) - str - the label for the End object to be accessed
-	Return Type: End Object
+	Parameters:
+			(endLabel) - str - the label for the End object to be accessed
+	Return Type:
+	 		End Object
 	'''
 	def getEndByLabel(self, endLabel):
 		try:
@@ -1580,10 +1717,11 @@ class Structure:
 	Description: More general form of get<secondarystructure>ByLabel(). Allows you to access a given
 	structure type component based on its label. Useful when using the componentArray because you may not know which
 	type of structure type component you will be accessing if you are(for example) looping through the entire array
-	Parameters: (label) - str - label of the feature to be accessed
-				(subLabel=None) - str - sublabel for components like innerloops and multiloops, default value is None
-				and it will not be used unless specified.
-	Return Type: returns a Structure Component
+	Parameters:
+			(label) - str - label of the feature to be accessed
+			(subLabel=None) - str - sublabel for components like innerloops and multiloops, default value is None and it will not be used unless specified.
+	Return Type:
+			StructureComponent object
 	'''
 	def component(self, label):
 		if label[0] == 'S':
@@ -1609,9 +1747,11 @@ class Structure:
 	'''
 	Function Name: neighbors(label, object=False)
 	Description: Function to get the secondary structures adjacent to the feature of interest.
-	Parameters: (label) - str - label for the feature of interest
-				(object) - bool - optional argument that causes the function to return the actual StructureTypeComponent objects instead of just the object label
-	Return Type: Returns a tuple containing the labels for the adjacent features in order of 5' to 3' locations
+	Parameters:
+			(label) - str - label for the feature of interest
+			(object) - bool - optional argument that causes the function to return the actual StructureTypeComponent objects instead of just the object label
+	Return Type:
+			Returns a tuple containing the labels for the adjacent features in order of 5' to 3' locations
 	'''
 	def neighbors(self, label, object=False):
 		adjacentFeatures = [] #list to store the adjacent RNA features

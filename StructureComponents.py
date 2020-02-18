@@ -94,6 +94,10 @@ class Stem:
 	def __str__(self):
 		return f'Stem: {self._label}'
 
+	#define len function operation for Stem objects
+	def __len__(self):
+		return self._sequenceLen
+
 	#Internal method to set the object _sequence member variable as a list of tuples based on the 5' and 3' sequence variables
 	def _setSequence(self):
 		if len(self._sequence5p) == len(self._sequence3p):
@@ -247,6 +251,10 @@ class Hairpin:
 	def __str__(self):
 		return f'Hairpin: {self._label}'
 
+	#define len function operation for Hairpin objects
+	def __len__(self):
+		return self._sequenceLen
+
 	#Function returns the label for the hairpin object. also allows user to define new label
 	def label(self, newLabel=None):
 		if newLabel:
@@ -387,6 +395,10 @@ class Bulge:
 	def __str__(self):
 		return f'Bulge: {self._label}'
 
+	#define len function operation for Bulge objects
+	def __len__(self):
+		return self._sequenceLen
+
 	#Function returns the label for the bulge object. Also allows user to define new label
 	def label(self, newLabel=None):
 		if newLabel:
@@ -516,6 +528,10 @@ class InnerLoop:
 	#defines the string representation of the object
 	def __str__(self):
 		return f'Inner Loop: {self._parentLabel}'
+
+	#define len function operation for InnerLoop objects
+	def __len__(self):
+		return self._loopsLen
 
 	#function to update loop lengths upon change
 	def _updateLoopLen(self):
@@ -865,6 +881,7 @@ External Loops
 Member variable -- data type -- description:
 self._label -- string -- label for the external loop secondary structure
 self._sequence -- string -- base sequence that defines the external loop
+self._sequenceLen -- int -- length of the external loop sequence
 self._span --tuple(int, int) -- tuple containing the integer start and stop locations for the external loop sequence
 self._closingPair5p -- tuple(string, string) -- tuple that contains the 5' closing base pair for the external loop
 self._closingPair5pSpan -- tuple(int, int) -- tuple containg the integer index locations for the 5' closing pair
@@ -876,6 +893,7 @@ class ExternalLoop:
 	def __init__(self, label, seq, seqSpan, closingPair5p, closingPair5pSpan, closingPair3p, closingPair3pSpan):
 		self._label = label
 		self._sequence = seq
+		self._sequenceLen = len(seq)
 		self._span = seqSpan
 		self._closingPair5p = closingPair5p
 		self._closingPair5pSpan = closingPair5pSpan
@@ -886,6 +904,10 @@ class ExternalLoop:
 	def __str__(self):
 		return f'External Loop: {self._label}'
 
+	#define len function operation for ExternalLoop objects
+	def __len__(self):
+		return self._sequenceLen
+
 	#Function returns the label for the external loop
 	def label(self):
 		return self._label
@@ -893,6 +915,10 @@ class ExternalLoop:
 	#Function returns the sequence that defines the external loop
 	def sequence(self):
 		return self._sequence
+
+	#function returns the length of the external loop sequence
+	def sequenceLen(self):
+		return self._sequenceLen
 
 	#Function returns a tuple containing the start and stop index locations for the external loop sequence
 	def span(self):
@@ -912,11 +938,16 @@ class End:
 	def __init__(self, label, sequence, span):
 		self._label = label
 		self._sequence = sequence
+		self._sequenceLen = len(sequence)
 		self._span = span
 
 	#define string representation of end object
 	def __str__(self):
 		return f'End: {self._label}'
+
+	#define len function operation for End objects
+	def __len__(self):
+		return self._sequenceLen
 
 	#Function returns the label for the end object
 	def label(self):
@@ -925,6 +956,10 @@ class End:
 	#Function returns the sequence that defines the end object
 	def sequence(self):
 		return self._sequence
+
+	#function returns the length of the End sequence
+	def sequenceLen(self):
+		return self._sequenceLen
 
 	#Function returns a tuple that contains the integer start and stop index locations for the end object
 	def span(self):
