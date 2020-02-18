@@ -490,9 +490,9 @@ class Bulge:
 			#special C condition = sequence is all 'C' with at least one adjacent 'C'
 			specialC = 0
 			cCount = 0
-			if self._sequence == 'C':
+			if self._sequence == 'C' and (self._closingPair5p[0] == 'C' or self._closingPair3p[0] == 'C'):
 				specialC = SPECIAL_C_BULGE
-				cCount = 1
+				cCount = 1 #number of possible states due to adjacent C's
 				if(self._closingPair5p[0] == 'C'):
 					cCount += 1
 				if (self._closingPair3p[0] == 'C'):
