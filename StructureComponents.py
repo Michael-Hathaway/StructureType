@@ -309,7 +309,17 @@ class Hairpin:
 
 		#Hairpins of length 3
 		elif self._sequenceLen == 3:
-			pass
+			#get hairpin initiation term
+			if self._sequenceLen in HairpinInit: #try to get from dictionary
+				init = HairpinInit[self._sequenceLen]
+			else: #otherwise calculate
+				init = HairpinInit[9] + (1.75 * R * T * np.log(float(self._sequenceLen/9.0)))
+
+			#check for all c loop penalty
+			if self._sequence.count('C') == self._sequenceLen:
+				return init + HAIRPIN_C3
+
+			return init
 
 		#hairpins of 4 nucleotides or greater
 		else:
@@ -393,7 +403,7 @@ class Bulge:
 	# __init__ method for bulge object
 	def __init__(self, label=None, sequence='', sequenceSpan=(-1, -1), closingPair5p=('', ''), closingPair5pSpan=(-1, -1), closingPair3p=('', ''), closingPair3pSpan=(-1, -1), pk=None):
 		self._label = label
-		self._sequence = seq
+		self._sequence = sequence
 		self._sequenceLen = len(sequence)
 		self._span = sequenceSpan
 		self._closingPair5p = closingPair5p
@@ -464,12 +474,6 @@ class Bulge:
 	#function calculates the folding free energy change for the bulge
 	def energy(self, strict=True):
 		if self._sequenceLen == 1: #bulges of length 1
-			#check for special C bulge case
-			#special C condition = sequence is all 'C' with at least one adjacent 'C'
-			specialC = 0
-			if self._sequence == 'C' and (self._closingPair5p[0] == 'C' or self._closingPair3p[0] == 'C'):
-				specialC = SPECIAL_C_BULGE
-
 			#get base pair stack
 			#base pair stack = the stack of the closing base pairs as if the bulge was not present
 			try:
@@ -482,8 +486,23 @@ class Bulge:
 				else:
 					basePairStack = 0
 
+			#check for special C bulge case
+			#special C condition = sequence is all 'C' with at least one adjacent 'C'
+			specialC = 0
+			cCount = 0
+			if self._sequence == 'C':
+				specialC = SPECIAL_C_BULGE
+				cCount = 1
+				if(self._closingPair5p[0] == 'C'):
+					cCount += 1
+				if (self._closingPair3p[0] == 'C'):
+					cCount += 1
 
-			return BulgeInit[1] + specialC + basePairStack
+				return BulgeInit[1] + basePairStack + specialC - (R * T * np.log(cCount))
+
+			#if not special C bulge, return bulge init + basePairStack
+			else:
+				return BulgeInit[1] + basePairStack
 
 		else: #bulge of length > 1
 			if self._sequenceLen in BulgeInit: #try to get value from dictionary
