@@ -1,5 +1,5 @@
 '''
-filename: specialHairpins.py
+filename: SpecialHairpins.py
 Author: Michael Hathaway
 
 Description: Module imported by the StructureType Module for use in hairpin energy calculations. Hairpin loops of length 3, 4, and 6 nucleotides have stabilities that are poorly fit by models so their stabilities are assigned based on experimental data.
@@ -9,7 +9,7 @@ Original source: https://rna.urmc.rochester.edu/NNDB/turner04/hairpin-special-pa
 Dictionary Usage: This is a nested dictionary where the first key is the closing pair for the hairpin loop and the second key is the sequence that defines the hairpin. The values are free energy values measured in Kcal/mol.
 '''
 
-specialHairpins = {
+SpecialHairpins = {
     ('C', 'G') : {
         ('AAC') : 6.8,
         ('UUA') : 6.9,

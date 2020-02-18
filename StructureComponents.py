@@ -18,6 +18,7 @@ from InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 i
 from InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
 from InnerLoopMismatches import InnerLoopMismatches_2x3, OtherInnerLoopMismtaches #energy values for 2x3 inner loop mismatches
 from StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
+from SpecialHairpins import SpecialHairpins #special case hairpins with precalculated energies
 
 ## Free Energy Parameter Constants ##
 INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value
@@ -169,7 +170,7 @@ class Stem:
 	def canonical(self):
 		return all(pair in CANONICAL_BASE_PAIRS for pair in self._sequence)
 
-        #function calculates the folding free energy change for the stem
+    #function calculates the folding free energy change for the stem
 	def energy(self, strict=True, init=False):
 		seq = self.sequence() #get stem as list of tuple base pairs
 
@@ -183,7 +184,7 @@ class Stem:
 		if seq[0] == ('A', 'U') or seq[0] == ('U', 'A'):
 			endPenalty += STEM_AU_END_PENALTY
 		if seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A'):
-			endPenalty = STEM_AU_END_PENALTY
+			endPenalty += STEM_AU_END_PENALTY
 
 		#sum up watson crick stacking interactions
 		stack = 0
@@ -302,44 +303,54 @@ class Hairpin:
 
 	#function to calculate folding free energy of hairpin
 	def energy(self, strict=True):
-		#get hairpin initiation term
-		if self._sequenceLen in HairpinInit: #try to get from dictionary
-			init = HairpinInit[self._sequenceLen]
-		else: #otherwise calculate
-			init = HairpinInit[9] + (1.75 * R * T * np.log(float(self._sequenceLen/9.0)))
+		#Check if the hairpin is a special case hairpin with precalculated energy values
+		if (self._closingPair in SpecialHairpins) and (self._sequence in SpecialHairpins[self._closingPair]):
+			return SpecialHairpins[self._closingPair][self._sequence]
 
-		#get terminal mismatch parameter
-		firstMismatch = (self._sequence[0], self._sequence[-1])
-		try:
-			terminalMismatch = StackTerminalMismatches[self._closingPair][firstMismatch]
-		except KeyError:
-			logging.warning(f'In energy() function for Hairping: {self._label}, terminal mismatch parameters for closing pair: {self._closingPair} and first mismatch: {firstMismatch} not found in Dictionary.')
-			if strict:
-				return None #strict mode - only calculate energy for hairpins with valid params
-			else:
-				terminalMismatch = 0
+		#Hairpins of length 3
+		elif self._sequenceLen == 3:
+			pass
 
-		#UU/GA first mismatch bonus
-		uu_ga_bonus = 0
-		if firstMismatch == ('U', 'U') or firstMismatch == ('G', 'A'):
-			uu_ga_bonus = HAIRPIN_UU_GA_FIRST_MISMATCH_BONUS
+		#hairpins of 4 nucleotides or greater
+		else:
+			#get hairpin initiation term
+			if self._sequenceLen in HairpinInit: #try to get from dictionary
+				init = HairpinInit[self._sequenceLen]
+			else: #otherwise calculate
+				init = HairpinInit[9] + (1.75 * R * T * np.log(float(self._sequenceLen/9.0)))
 
-		#GG first mismatch bonus
-		gg_bonus = 0
-		if firstMismatch == ('G', 'G'):
-			gg_bonus = HAIRPIN_GG_FIRST_MISMATCH_BONUS
+			#get terminal mismatch parameter
+			firstMismatch = (self._sequence[0], self._sequence[-1])
+			try:
+				terminalMismatch = StackTerminalMismatches[self._closingPair][firstMismatch]
+			except KeyError:
+				logging.warning(f'In energy() function for Hairping: {self._label}, terminal mismatch parameters for closing pair: {self._closingPair} and first mismatch: {firstMismatch} not found in Dictionary.')
+				if strict:
+					return None #strict mode - only calculate energy for hairpins with valid params
+				else:
+					terminalMismatch = 0
 
-		#Special GU closure
-		gu_closure = 0
-		if self._closingPair == ('G', 'U') and firstMismatch == ('G', 'G'):
-			gu_closure = HAIRPIN_SPECIAL_GU_CLOSURE
+			#UU/GA first mismatch bonus
+			uu_ga_bonus = 0
+			if firstMismatch == ('U', 'U') or firstMismatch == ('G', 'A'):
+				uu_ga_bonus = HAIRPIN_UU_GA_FIRST_MISMATCH_BONUS
 
-		#All C loop penalty
-		c_loop_penalty = 0
-		if self._sequence.count('C') == self._sequenceLen:
-			c_loop_penalty = (self._sequenceLen * HAIRPIN_C_LOOP_A) + HAIRPIN_C_LOOP_B
+			#GG first mismatch
+			gg_bonus = 0
+			if firstMismatch == ('G', 'G'):
+				gg_bonus = HAIRPIN_GG_FIRST_MISMATCH_BONUS
 
-		return init + terminalMismatch + uu_ga_bonus + gg_bonus + gu_closure + c_loop_penalty
+			#Special GU closure
+			gu_closure = 0
+			if self._closingPair == ('G', 'U') and firstMismatch == ('G', 'G'):
+				gu_closure = HAIRPIN_SPECIAL_GU_CLOSURE
+
+			#All C loop penalty
+			c_loop_penalty = 0
+			if self._sequence.count('C') == self._sequenceLen:
+				c_loop_penalty = (self._sequenceLen * HAIRPIN_C_LOOP_A) + HAIRPIN_C_LOOP_B
+
+			return init + terminalMismatch + uu_ga_bonus + gg_bonus + gu_closure + c_loop_penalty
 
 
 '''
@@ -380,10 +391,10 @@ self._pk -- int -- ???
 '''
 class Bulge:
 	# __init__ method for bulge object
-	def __init__(self, label=None, seq='', sequenceSpan=(-1, -1), closingPair5p=('', ''), closingPair5pSpan=(-1, -1), closingPair3p=('', ''), closingPair3pSpan=(-1, -1), pk=None):
+	def __init__(self, label=None, sequence='', sequenceSpan=(-1, -1), closingPair5p=('', ''), closingPair5pSpan=(-1, -1), closingPair3p=('', ''), closingPair3pSpan=(-1, -1), pk=None):
 		self._label = label
 		self._sequence = seq
-		self._sequenceLen = len(seq)
+		self._sequenceLen = len(sequence)
 		self._span = sequenceSpan
 		self._closingPair5p = closingPair5p
 		self._closingPair5pSpan = closingPair5pSpan
