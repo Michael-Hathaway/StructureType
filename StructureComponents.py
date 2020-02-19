@@ -1037,17 +1037,19 @@ class NCBP:
 
 '''
 Mulitloops -- UNFINISHED
+
+Member variable -- data type -- description:
+self._parentLabel -- str -- parent label for all the multiloop subcomponents
+self._subunitLabels -- list -- list of all the subunit labels for the multiloop
+self._sequences -- dictionary -- dictionary of the multiloop component sequences. key values are the subunit labels
+self._span -- dictionary -- dictionary of the multiloop component spans. key values are the subunit labels
 '''
 class MultiLoop:
-	def __init__(self, parentLabel, subunitLabel, sequence, span, closingPair5p, closingPair5pSpan, closingPair3p, closingPair3pSpan):
+	def __init__(self, parentLabel, subunitLabel, sequence, span):
 		self._parentLabel = parentLabel
-		self._subunitLabel = subunitLabel
-		self._sequence = sequence
+		self._subunitLabels = subunitLabels
+		self._sequences = sequences
 		self._span = span
-		self._closingPair5p = closingPair5p
-		self._closingPair5pSpan = closingPair5pSpan
-		self._closingPair3p = closingPair3p
-		self._closingPair3pSpan = closingPair3pSpan
 
 	def __str__(self):
 		return f'Multiloop: {self._parentLabel}.{self._subunitLabel}'
@@ -1059,7 +1061,7 @@ class MultiLoop:
 		return self._subunitLabel
 
 	def sequence(self):
-		return self._sequence
+		return self._sequences
 
 	def span(self):
 		return self._span

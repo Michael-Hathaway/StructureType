@@ -104,7 +104,7 @@ class Structure:
 	Return Type:
 			Structure object
 
-	#Note: At this point, the data on segments and pseudoknots is not parsed from the .st file
+	#Note: At this point, the data for segments and pseudoknots is not parsed from the .st file. Multiloop data is parsed, but the multiloop object is incomplete.
 	'''
 	def _loadFile(self, filename):
 
@@ -168,7 +168,8 @@ class Structure:
 
 		features = features.split('\n') #split rest of file contents into a list of strings
 		features = features[:-1] #remove the newline string at the end of the list
-		for i in range(len(features)): #iterate through the individual string
+		i = 0
+		while i < (len(features)): #iterate through the individual string
 
 			##stems##
 			if features[i][0] == 'S' and features[i][1].isdigit():
@@ -188,7 +189,14 @@ class Structure:
 
 			##MultiLoops##
 			elif features[i][0] == 'M':
-				self._parseMultiLoopData(features[i].split(' '))
+				parentLabel = self._getMultiloopParentLabel(features[i]) #get parent label of the multiloop
+				subcomponents = [] #array to temporarily store multiloop subcomponents
+				while self._getMultiloopParentLabel(features[i]) == parentLabel: #linear probe for other multiloop subcomponents
+					subcomponents.append(features[i].split(' '))
+					i += 1
+
+				#self._parseMultiLoopData(subcomponents)
+				continue #once all components parsed, continue to next iteration without affecting counter
 
 			##external loops##
 			elif features[i][0] == 'X':
@@ -202,6 +210,7 @@ class Structure:
 			elif features[i][0] == 'E':
 				self._parseEndData(features[i].split(' '))
 
+			i += 1 #increment counter
 
 		f.close() #close the file
 
@@ -648,6 +657,20 @@ class Structure:
 		self.addExternalLoop(externalLoopLabel, newExternalLoop)
 
 
+	'''
+	Function Name: _getMultiloopParentLabel(self, multiloopString)
+	Description:
+	parameters:
+	Return value
+	'''
+	def _getMultiloopParentLabel(self, multiloopString):
+		parentLabel = ''
+		for char in multiloopString:
+			if char == '.':
+				break
+			parentLabel += char
+
+		return parentLabel
 
 	'''
 	Function Name: _parseMultiLoopData()
@@ -658,90 +681,80 @@ class Structure:
 	Return Type:
 			None
 	'''
-	def _parseMultiLoopData(self, multiloopData):
-		#get MultiLoop parent Label
-		parentLabel = ''
-		for char in multiloopData[0]:
-			if char == '.':
-				break
-			else:
-				parentLabel += char
+	def _parseMultiLoopData(self, multiloopComponents):
 
-		#get inner loop subunit label
-		subunitLabel = multiloopData[0][-1]
+		for subunit in multiloopComponents: #iterate through subcomponents
 
-		#get start index of loop subunit
-		startIndex = ''
-		for char in multiloopData[1]:
-			if char.isnumeric():
-				startIndex += char
-			else:
-				break
-		startIndex = int(startIndex)
+			#get inner loop subunit label
+			subunitLabel = multiloopData[0][-1]
 
-		#get stop index of loop subunit
-		stopIndex = ''
-		for char in reversed(multiloopData[1]):
-			if char.isnumeric():
-				stopIndex += char
-			else:
-				break
-		stopIndex = int(stopIndex[::-1])
+			#get start index of loop subunit
+			startIndex = ''
+			for char in multiloopData[1]:
+				if char.isnumeric():
+					startIndex += char
+				else:
+					break
+			startIndex = int(startIndex)
 
-		#get multiloop sequence
-		seq = ''
-		for char in multiloopData[2]:
-			if char.isalpha():
-				seq += char
+			#get stop index of loop subunit
+			stopIndex = ''
+			for char in reversed(multiloopData[1]):
+				if char.isnumeric():
+					stopIndex += char
+				else:
+					break
+			stopIndex = int(stopIndex[::-1])
 
-		#get index of first base in 5' closing pair
-		closingPair5pStart = ''
-		for char in multiloopData[3]:
-			if char.isnumeric():
-				closingPair5pStart += char
-			elif char == ',':
-				break
-		closingPair5pStart = int(closingPair5pStart)
+			#get multiloop sequence
+			seq = ''
+			for char in multiloopData[2]:
+				if char.isalpha():
+					seq += char
 
-		#get index of second base in 5' closing pair
-		closingPair5pEnd = ''
-		for char in reversed(multiloopData[3]):
-			if char.isnumeric():
-				closingPair5pEnd += char
-			elif char == ',':
-				break
-		closingPair5pEnd = int(closingPair5pEnd[::-1])
+			#get index of first base in 5' closing pair
+			closingPair5pStart = ''
+			for char in multiloopData[3]:
+				if char.isnumeric():
+					closingPair5pStart += char
+				elif char == ',':
+					break
+			closingPair5pStart = int(closingPair5pStart)
 
-		#store closing pair as a tuple
-		closingPair5p = (multiloopData[4][0], multiloopData[4][2])
+			#get index of second base in 5' closing pair
+			closingPair5pEnd = ''
+			for char in reversed(multiloopData[3]):
+				if char.isnumeric():
+					closingPair5pEnd += char
+				elif char == ',':
+					break
+			closingPair5pEnd = int(closingPair5pEnd[::-1])
 
-		#get index of first base in 3' closing pair
-		closingPair3pStart = ''
-		for char in multiloopData[5]:
-			if char.isnumeric():
-				closingPair3pStart += char
-			elif char == ',':
-				break
-		closingPair3pStart = int(closingPair3pStart)
+			#store closing pair as a tuple
+			closingPair5p = (multiloopData[4][0], multiloopData[4][2])
 
-		#get index of second base in 3' closing pair
-		closingPair3pEnd = ''
-		for char in reversed(multiloopData[5]):
-			if char.isnumeric():
-				closingPair3pEnd += char
-			elif char == ',':
-				break
-		closingPair3pEnd = int(closingPair3pEnd[::-1])
+			#get index of first base in 3' closing pair
+			closingPair3pStart = ''
+			for char in multiloopData[5]:
+				if char.isnumeric():
+					closingPair3pStart += char
+				elif char == ',':
+					break
+			closingPair3pStart = int(closingPair3pStart)
 
-		#store closing pair as a tuple
-		closingPair3p = (multiloopData[6][0], multiloopData[6][2])
+			#get index of second base in 3' closing pair
+			closingPair3pEnd = ''
+			for char in reversed(multiloopData[5]):
+				if char.isnumeric():
+					closingPair3pEnd += char
+				elif char == ',':
+					break
+			closingPair3pEnd = int(closingPair3pEnd[::-1])
 
-		newMultiLoop = MultiLoop(parentLabel, subunitLabel, seq, (startIndex, stopIndex),
-								closingPair5p, (closingPair5pStart, closingPair5pEnd),
-								closingPair3p, (closingPair3pStart, closingPair3pEnd))
-		self._addMultiLoopToComponentArray(newMultiLoop)
-		self.addMultiLoop(parentLabel, subunitLabel, newMultiLoop)
+			#store closing pair as a tuple
+			closingPair3p = (multiloopData[6][0], multiloopData[6][2])
 
+		#need to add components to new multiloop
 
 
 
