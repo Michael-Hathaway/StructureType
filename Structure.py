@@ -192,10 +192,10 @@ class Structure:
 				parentLabel = self._getMultiloopParentLabel(features[i]) #get parent label of the multiloop
 				subcomponents = [] #array to temporarily store multiloop subcomponents
 				while self._getMultiloopParentLabel(features[i]) == parentLabel: #linear probe for other multiloop subcomponents
-					subcomponents.append(features[i].split(' '))
+					subcomponents.append(features[i].split(' ')) #append each subcomponent to the subcomponents list
 					i += 1
 
-				#self._parseMultiLoopData(subcomponents)
+				self._parseMultiLoopData(subcomponents) #parse the entire multiloop subcomponent list
 				continue #once all components parsed, continue to next iteration without affecting counter
 
 			##external loops##
@@ -672,6 +672,7 @@ class Structure:
 
 		return parentLabel
 
+
 	'''
 	Function Name: _parseMultiLoopData()
 	Description: Internal method used by _loadFile() to parse all the multiloop information in the
@@ -682,11 +683,18 @@ class Structure:
 			None
 	'''
 	def _parseMultiLoopData(self, multiloopComponents):
+		#get parent label for all multiloop components
+		parentLabel = self._getMultiloopParentLabel(multiloopComponents[0][0])
 
-		for subunit in multiloopComponents: #iterate through subcomponents
+		subunitLabels = [] #list to store all subunit labels
+		sequences = {} #list to store all sequences
+		spans = {} #list to store all sequence spans
 
-			#get inner loop subunit label
+		for multiloopData in multiloopComponents: #iterate through subcomponents
+
+			#get inner loop subunit label and append to subunits list
 			subunitLabel = multiloopData[0][-1]
+			subunitLabels.append(subunitLabel)
 
 			#get start index of loop subunit
 			startIndex = ''
@@ -706,11 +714,16 @@ class Structure:
 					break
 			stopIndex = int(stopIndex[::-1])
 
-			#get multiloop sequence
+			#add start and stop as tuple to spans dictionary
+			spans[subunitLabel] = (startIndex, stopIndex)
+
+			#get multiloop sequence and add to sequences dictionary
 			seq = ''
 			for char in multiloopData[2]:
 				if char.isalpha():
 					seq += char
+
+			sequences[subunitLabel] = seq #add sequence to dictionary
 
 			#get index of first base in 5' closing pair
 			closingPair5pStart = ''
@@ -754,8 +767,10 @@ class Structure:
 			#store closing pair as a tuple
 			closingPair3p = (multiloopData[6][0], multiloopData[6][2])
 
-		#need to add components to new multiloop
-
+		#create new multiloop, add to Structure object, and update component array
+		newMultiLoop = MultiLoop(parentLabel, subunitLabels, sequences, spans)
+		self._addMultiLoopToComponentArray(newMultiLoop)
+		self.addMultiLoop(parentLabel, newMultiLoop)
 
 
 	'''
@@ -951,8 +966,10 @@ class Structure:
 	 		None
 	'''
 	def _addMultiLoopToComponentArray(self, multiloop):
-		for i in range(multiloop.span()[0]-1, multiloop.span()[1]):
-			self._componentArray[i] = multiloop.label() + '.' + multiloop.subunitLabel()
+		for subunit in multiloop._subunitLabels: #iterate through subunit labels
+			span = multiloop._spans[subunit] #get span for particular subunit
+			for i in range(span[0]-1, span[1]):
+				self._componentArray[i] = multiloop._parentLabel
 
 	'''
 	Function Name: componentArray()
@@ -1419,11 +1436,8 @@ class Structure:
 	Return Type:
 	 		None
 	'''
-	def addMultiLoop(self, parentLabel, subunitLabel, newMultiLoop):
-		if parentLabel not in self._multiLoops.keys():
-			self._multiLoops[parentLabel] = dict()
-
-		self._multiLoops[parentLabel][subunitLabel] = newMultiLoop
+	def addMultiLoop(self, parentLabel, newMultiLoop):
+		self._multiLoops[parentLabel] = newMultiLoop
 
 	'''
 	Function Name: numMultiLoops()
@@ -1436,73 +1450,36 @@ class Structure:
 	def numMultiLoops(self):
 		return len(self._multiLoops)
 
-
 	'''
-	Function Name: getMultiLoopByLabel(label)
-	Description: returns a tuple containing the subunits of the MultiLoop stored at the given key value
+	Function Name: _getMultiLoopByLabel(self, label)
+	Description: Function returns the MultiLoop object identified by a given parent label.
 	Parameters:
-			(label) - str - parent label for the multiloop to be accessed
-	Return Type:
-	 		tuple(MultiLoop Object, ... , MultiLoop Object)
+			(label) -- str -- parent label of the MultiLoop object being accessed
+	Return Value:
+			MultiLoop object
 	'''
-	def getMultiLoopByLabel(self, label):
+	def _getMultiLoopByLabel(self, label):
 		try:
-			MultiLoop = tuple(self._multiLoops[label].values())
-			return MultiLoop
+			multiloop = self._multiLoops[label]
+			return multiloop
 		except KeyError:
-			print(f'MultiLoop: {label} not found.')
+			print(f'MultiLoop {label} not found.')
 			return None
 
 	'''
-	Function Name: getMultiLoopSubunitByLabel(parentLabel, subunitLabel)
-	Description: Function to access a particular subunit for a given multiloop
+	Function Name: multiLoops(label=None)
+	Description: Function returns a list of all the multiloops stored in a Structure object. If a particular label is provided, only the MultiLoop object with that label will be returned
 	Parameters:
-			(parentLabel) - str - parent label for the multiloop to be accessed
-			(subunitLabel) - str - subunit label for the multiloop to be accessed
-	Return Type:
-	 		MultiLoop object
+			(label=None) -- str -- parent label of the MultiLoop object being accessed. Default value is None
+	Return Value:
+			if label is provided: MultiLoop object
+			if label=None: list of MultiLoop objects
 	'''
-	def getMultiLoopSubunitByLabel(self, parentLabel, subunitLabel):
-		try:
-			multi = self._multiLoops[parentLabel][subunitLabel]
-			return multi
-		except KeyError:
-			print(f'MultiLoop: {parentLabel}.{subunitLabel} not found')
-			return None
-
-	'''
-	Function Name: multiloopLabels()
-	Description: function to return a list of 2-value tuple where the first value is the parent label for a multiloop
-	and the second value is the subunit label for a multioop
-	Parameters:
-	 		None
-	Return Type:
-	 		list of tuples
-	'''
-	def multilooplabels(self):
-		labels = []
-		for loop in self._multiLoops.keys():
-			for subunit in self._multiLoops[loop].values():
-				labels.append((subunit.parentLabel(), subunit.subunitLabel()))
-
-		return labels
-
-
-	'''
-	Function Name: multiloops()
-	Description: Function to return a list of tuples, where each tuple contains all the multiloop object subunits composing
-	each multiloop in the Structure object
-	Parameters:
-			None
-	Return Type:
-	 		list of tuples
-	'''
-	def multiloops(self):
-		loops = []
-		for loop in self._multiLoops.values():
-			loops.append(tuple(loop.values()))
-
-		return loops
+	def multiLoops(self, label=None):
+		if(label):
+			return self._getMultiLoopByLabel(label)
+		else:
+			return list(self._multiLoops.values())
 
 
 

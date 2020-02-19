@@ -1036,7 +1036,7 @@ class NCBP:
 
 
 '''
-Mulitloops -- UNFINISHED
+MultiLoop -- UNFINISHED
 
 Member variable -- data type -- description:
 self._parentLabel -- str -- parent label for all the multiloop subcomponents
@@ -1045,26 +1045,26 @@ self._sequences -- dictionary -- dictionary of the multiloop component sequences
 self._span -- dictionary -- dictionary of the multiloop component spans. key values are the subunit labels
 '''
 class MultiLoop:
-	def __init__(self, parentLabel, subunitLabel, sequence, span):
+	def __init__(self, parentLabel, subunitLabels, sequences, spans):
 		self._parentLabel = parentLabel
 		self._subunitLabels = subunitLabels
 		self._sequences = sequences
-		self._span = span
+		self._spans = spans
 
 	def __str__(self):
-		return f'Multiloop: {self._parentLabel}.{self._subunitLabel}'
+		return f'MultiLoop: {self._parentLabel}'
 
 	def label(self):
 		return self._parentLabel
 
-	def subunitLabel(self):
-		return self._subunitLabel
+	def subunitLabels(self):
+		return self._subunitLabels
 
 	def sequence(self):
 		return self._sequences
 
 	def span(self):
-		return self._span
+		return self._spans
 
 
 
