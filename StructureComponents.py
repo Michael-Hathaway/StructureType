@@ -1041,30 +1041,83 @@ MultiLoop -- UNFINISHED
 Member variable -- data type -- description:
 self._parentLabel -- str -- parent label for all the multiloop subcomponents
 self._subunitLabels -- list -- list of all the subunit labels for the multiloop
+self._numSubunits -- int -- number of subunits composing the multiloop
 self._sequences -- dictionary -- dictionary of the multiloop component sequences. key values are the subunit labels
 self._span -- dictionary -- dictionary of the multiloop component spans. key values are the subunit labels
+self._closingPairs -- ((str, str), (str, str)) -- tuple containing the 5' and 3' closing base pairs as tuples
+self._closingPairsSpan - ((int, int), (int, int)) -- tuple containing the 5' and 3' closing base pair spans as tuples
 '''
 class MultiLoop:
-	def __init__(self, parentLabel, subunitLabels, sequences, spans):
+	#__init__() method for MultiLoop class
+	def __init__(self, parentLabel, subunitLabels, sequences, spans, closingPairs, closingPairsSpan):
 		self._parentLabel = parentLabel
 		self._subunitLabels = subunitLabels
+		self._numSubunits = len(sequences)
 		self._sequences = sequences
 		self._spans = spans
+		self._closingPairs = closingPairs
+		self._closingPairsSpan = closingPairsSpan
 
+	#define string representation for MultiLoop object
 	def __str__(self):
 		return f'MultiLoop: {self._parentLabel}'
 
+	#Function to return the parent Label for the MultiLoop object
 	def label(self):
 		return self._parentLabel
 
+	#Function to return a list of the MultiLoop object subcomponents
 	def subunitLabels(self):
 		return self._subunitLabels
 
-	def sequence(self):
-		return self._sequences
+	#Function to return the number of subcomponents composing the MultiLoop
+	def numSubunits(self):
+		return self._numSubunits
 
-	def span(self):
-		return self._spans
+	#Function to return dictionary of subunitLabel : Sequence pairs for the MultiLoop object
+	def sequence(self, subunit=None):
+		if(subunit):
+			try:
+				sequence = self._sequences[subunit]
+				return sequence
+			except KeyError:
+				return None
+		else:
+			return self._sequences
+
+	#Function to return dictionary of subunitLabel : SequenceSpans pairs for the MultiLoop object
+	def span(self, subunit=None):
+		if(subunit):
+			try:
+				span = self._spans[subunit]
+				return span
+			except KeyError:
+				return None
+		else:
+			return self._spans
+
+	#Function to return dictionary of subunitLabel : closingPairs for the MultiLoop object
+	def closingPairs(self, subunit=None):
+		if(subunit):
+			try:
+				closingPair = self._closingPairs[subunit]
+				return closingPair
+			except KeyError:
+				return None
+		else:
+			return self._closingPairs
+
+	#Function to return dictionary of subunitLabel : closingPairsSpan for the MultiLoop object
+	def closingPairsSpan(self, subunit=None):
+		if(subunit):
+			try:
+				closingPairSpan = self._closingPairsSpan[subunit]
+				return closingPairsSpan
+			except KeyError:
+				return None
+		else:
+			return self._closingPairsSpan
+
 
 
 

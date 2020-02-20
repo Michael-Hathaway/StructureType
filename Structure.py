@@ -687,8 +687,10 @@ class Structure:
 		parentLabel = self._getMultiloopParentLabel(multiloopComponents[0][0])
 
 		subunitLabels = [] #list to store all subunit labels
-		sequences = {} #list to store all sequences
-		spans = {} #list to store all sequence spans
+		sequences = {} #dictionary to store all sequences
+		spans = {} #dictionary to store all sequence spans
+		closingPairs = {} #dictionary to store closing pairs for multiloop segments
+		closingPairsSpan = {} #dictionary to store closing pairs spans for multiloop segments
 
 		for multiloopData in multiloopComponents: #iterate through subcomponents
 
@@ -743,6 +745,9 @@ class Structure:
 					break
 			closingPair5pEnd = int(closingPair5pEnd[::-1])
 
+			#get whole 5' closing pair
+			closingPair5pSpan = (closingPair5pStart, closingPair5pEnd)
+
 			#store closing pair as a tuple
 			closingPair5p = (multiloopData[4][0], multiloopData[4][2])
 
@@ -764,11 +769,18 @@ class Structure:
 					break
 			closingPair3pEnd = int(closingPair3pEnd[::-1])
 
+			#store whole 3' closing pair span
+			closingPair3pSpan = (closingPair3pStart, closingPair3pEnd)
+
 			#store closing pair as a tuple
 			closingPair3p = (multiloopData[6][0], multiloopData[6][2])
 
+			#add closing pairs and closing pair spans to dictionaries
+			closingPairs[subunitLabel] = (closingPair5p, closingPair3p)
+			closingPairsSpan[subunitLabel] = (closingPair5pSpan, closingPair3pSpan)
+
 		#create new multiloop, add to Structure object, and update component array
-		newMultiLoop = MultiLoop(parentLabel, subunitLabels, sequences, spans)
+		newMultiLoop = MultiLoop(parentLabel, subunitLabels, sequences, spans, closingPairs, closingPairsSpan)
 		self._addMultiLoopToComponentArray(newMultiLoop)
 		self.addMultiLoop(parentLabel, newMultiLoop)
 
