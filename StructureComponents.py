@@ -60,15 +60,12 @@ logging.basicConfig(filename='./StructureComponents.log', level=logging.WARNING,
 the Stem object is used to represent RNA secondary structure stems.
 
 Member variable -- data type -- description:
-
 self._label -- String -- the label for the stem as defined in the structure type file.
 self._sequence5p -- String -- the 5' portion of the stem sequence.
 self._sequence3p -- String -- the 3' portion of the stem sequence.
 self._sequenceLen -- Int -- the length of the stem in number of base pairs.
-self._sequence5p_index -- (int, int) -- tuple containing the integer value start and stop
-	indices for the 5' portion of the stem sequence.
-self._sequence3p_index -- (int, int) -- tuple containing the integer value start and stop
-	indices for the 3' portion of the stem sequence.
+self._sequence5p_index -- (int, int) -- tuple containing the integer value start and stop indices for the 5' portion of the stem sequence.
+self._sequence3p_index -- (int, int) -- tuple containing the integer value start and stop indices for the 3' portion of the stem sequence.
 
 
 			5' Sequence
@@ -213,16 +210,12 @@ class Stem:
 the Hairpin object is used to represent RNA secondary structure hairpins.
 
 Member variable -- data type -- description:
-
 self._label -- string -- the label for the hairpin as defined by the structure type file.
 self._sequence -- string -- the RNA sequence for the hairpin.
 self._sequenceLen -- Int -- the length of the hairpin as measured in number of nucleotides.
-self._span -- (int, int) -- tuple containing the integer start and stop indices
-	for the hairpin.
-self._closingPair -- (string, string) -- tuple containing two single character strings. The first character
-	corresponds to the 5' base in the closing pair. The second character is the 3' base in the closing pair.
-self._closing_span -- (int, int) -- tuple containing two integers. The first integer is the index location of
-	the 5' base in the closing pair. The second integer is the index location of the 3'base in the closing pair.
+self._span -- (int, int) -- tuple containing the integer start and stop indices for the hairpin.
+self._closingPair -- (string, string) -- tuple containing two single character strings. The first character corresponds to the 5' base in the closing pair. The second character is the 3' base in the closing pair.
+self._closing_span -- (int, int) -- tuple containing two integers. The first integer is the index location of the 5' base in the closing pair. The second integer is the index location of the 3'base in the closing pair.
 self._pk -- Int -- ???
 
 
@@ -371,20 +364,11 @@ Member Variable -- Data Type -- Description:
 self._label -- string -- The label for the bulge as defined by the structure type file.
 self._sequence -- string -- The RNA sequence for the bulge.
 self._sequenceLen -- Int -- The length of the bulge as measured in nucleotides.
-self._span -- (int, int) -- Tuple containing the integer start and stop indices
-	for the RNA sequene that defines the bulge.
-self._closingPair5p -- (string, string) -- Tuple containing 2 single character strings. The
-	first string the the 5' base in 5' closing pair for the bule. The second character is the
-	3' base in the 5' closing pair.
-self._closingPair5pSpan -- (int, int) -- Tuple containing 2 integers. The first integer
-	is the index of the 5' base in 5' closing pair for the bule. The second integer is the
-	index of the 3' base in the 5' closing pair
-self._closingPair3p -- (string, string) -- Tuple containing 2 single character strings. The
-	first string the the 5' base in 3' closing pair for the bule. The second character is the
-	3' base in the 3' closing pair.
-self._closingPair3pSpan -- (int, int) -- Tuple containing 2 integers. The first integer
-	is the index of the 5' base in 3' closing pair for the bule. The second integer is the
-	index of the 3' base in the 3' closing pair
+self._span -- (int, int) -- Tuple containing the integer start and stop indices for the RNA sequene that defines the bulge.
+self._closingPair5p -- (string, string) -- Tuple containing 2 single character strings. The first string the the 5' base in 5' closing pair for the bule. The second character is the 3' base in the 5' closing pair.
+self._closingPair5pSpan -- (int, int) -- Tuple containing 2 integers. The first integer is the index of the 5' base in 5' closing pair for the bule. The second integer is the index of the 3' base in the 5' closing pair
+self._closingPair3p -- (string, string) -- Tuple containing 2 single character strings. The first string the the 5' base in 3' closing pair for the bule. The second character is the 3' base in the 3' closing pair.
+self._closingPair3pSpan -- (int, int) -- Tuple containing 2 integers. The first integer is the index of the 5' base in 3' closing pair for the bule. The second integer is the index of the 3' base in the 3' closing pair
 self._pk -- int -- ???
 
 
@@ -1036,7 +1020,7 @@ class NCBP:
 
 
 '''
-MultiLoop -- UNFINISHED
+MultiLoop
 
 Member variable -- data type -- description:
 self._parentLabel -- str -- parent label for all the multiloop subcomponents
