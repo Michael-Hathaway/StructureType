@@ -11,7 +11,6 @@ RNA structure type files in the python programming language.
 import numpy as np
 import sys
 import re
-import importlib
 
 ## Structure Type Component Imports ##
 from StructureComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
@@ -151,22 +150,22 @@ class Structure:
 				else:
 					continue
 
-				#get actual RNA sequence
+			#get actual RNA sequence
 			elif (sequenceRead == False):
 					self._sequence = line.strip() #drop the newline character
 					sequenceRead = True
 
-				#get Dot Bracket Notation for the molecule
+			#get Dot Bracket Notation for the molecule
 			elif (dotBracketRead == False):
 					self._DBN = line.strip() #drop the newline character
 					dotBracketRead = True
 
-				#get Annotated symbol form of the molecule
+			#get Annotated symbol form of the molecule
 			elif (structureArrayRead == False):
 					self._structureArray = line.strip() #drop the newline character
 					structureArrayRead = True
 
-				#varna notation for the molecule
+			#varna notation for the molecule
 			elif (varnaRead == False):
 					self._varna = line.strip() #drop the newline characters
 					varnaRead = True

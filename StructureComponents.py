@@ -292,12 +292,20 @@ class Hairpin:
 		firstMismatch = (self._sequence[0], self._sequence[-1])
 		if(self._closingPair not in StackTerminalMismatches) or (firstMismatch not in StackTerminalMismatches[self._closingPair]):
 			return False
-		return True
+		elif self._sequenceLen < 3:
+			return False
+		else:
+			return True
 
 	#function to calculate folding free energy of hairpin
 	def energy(self, strict=True):
+		#check that hairpin is at least 3 nucleotides long
+		if self._sequenceLen < 3:
+			logging.warning(f'In energy() function for Hairpin: {self._label}, hairpin is less than 3 nucleotides long.')
+			return None
+
 		#Check if the hairpin is a special case hairpin with precalculated energy values
-		if (self._closingPair in SpecialHairpins) and (self._sequence in SpecialHairpins[self._closingPair]):
+		elif (self._closingPair in SpecialHairpins) and (self._sequence in SpecialHairpins[self._closingPair]):
 			return SpecialHairpins[self._closingPair][self._sequence]
 
 		#Hairpins of length 3
@@ -327,7 +335,7 @@ class Hairpin:
 			try:
 				terminalMismatch = StackTerminalMismatches[self._closingPair][firstMismatch]
 			except KeyError:
-				logging.warning(f'In energy() function for Hairping: {self._label}, terminal mismatch parameters for closing pair: {self._closingPair} and first mismatch: {firstMismatch} not found in Dictionary.')
+				logging.warning(f'In energy() function for Hairpin: {self._label}, terminal mismatch parameters for closing pair: {self._closingPair} and first mismatch: {firstMismatch} not found in Dictionary.')
 				if strict:
 					return None #strict mode - only calculate energy for hairpins with valid params
 				else:
