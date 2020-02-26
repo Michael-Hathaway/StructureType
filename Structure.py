@@ -9,6 +9,7 @@ RNA structure type files in the python programming language.
 
 ## Module Imports ##
 import numpy as np
+import sys
 import re
 import importlib
 
@@ -123,57 +124,69 @@ class Structure:
 			print('Something unexpected ocurred when accessing the file')
 			return None
 
+
+		#Variables to validate all features have been read
+		sequenceRead = False
+		dotBracketRead = False
+		structureArrayRead = False
+		varnaRead = False
+
 		#iterate through all of the lines in the file
 		for line in f:
 
 			if line[0] == '#':
 				#get name of RNA molecule
 				if line[0:6] == '#Name:':
-					self._name = line[7:-1:]
+					self._name = line[6:].strip()
 
 				#get length of the RNA sequence
 				elif line[0:8] == '#Length:':
-					self._length = int(line[10:-1:])
+					self._length = int(line[8:].strip())
 					self._componentArray = np.empty(self._length, dtype=object)
 
 				#get page number for molecule
 				elif line[0:12] == '#PageNumber:':
-					self._pageNum = int(line[13:-1:])
+					self._pageNum = int(line[12:].strip())
 
 				else:
 					continue
 
-			#get actual RNA sequence
-			elif all(i in ['A', 'U', 'C', 'G'] for i in line[:-1]):
-				self._sequence = line[:-1] #drop the newline character
+				#get actual RNA sequence
+			elif (sequenceRead == False):
+					self._sequence = line.strip() #drop the newline character
+					sequenceRead = True
 
-			#get Dot Bracket Notation for the molecule
-			elif all(i in ['(', ')', '[', ']', '.', '}', '{', '<', '>', 'a', 'A'] for i in line[:-1]):
-				self._DBN = line[:-1] #drop the newline character
+				#get Dot Bracket Notation for the molecule
+			elif (dotBracketRead == False):
+					self._DBN = line.strip() #drop the newline character
+					dotBracketRead = True
 
-			#get Annotated symbol form of the molecule
-			elif all(i in ['S', 'B', 'E', 'I', 'M', 'H', 'X'] for i in line[:-1]):
-				self._structureArray = line[:-1] #drop the newline character
+				#get Annotated symbol form of the molecule
+			elif (structureArrayRead == False):
+					self._structureArray = line.strip() #drop the newline character
+					structureArrayRead = True
 
-			#varna notation for the molecule
-			elif all(i in ['K', 'N'] for i in line[:-1]):
-				self._varna = line[:-1] #drop the newline characters
-				#when all identifying data has been parsed, parse the StructureComponents
-				features = f.read() #read the rest of the file into features variable
-				break
+				#varna notation for the molecule
+			elif (varnaRead == False):
+					self._varna = line.strip() #drop the newline characters
+					varnaRead = True
 
-			else: #This will parse all features if the any identifying data is missing
-				features = f.read()
+					if (sequenceRead and dotBracketRead and structureArrayRead and varnaRead):
+						#when all identifying data has been parsed, parse the StructureComponents
+						features = f.read() #read the rest of the file into features variable
+						break
+					else:
+						print(f'File: {filename} is not proper .st format')
+						return None
 
 
-		features = features.split('\n') #split rest of file contents into a list of strings
-		features = features[:-1] #remove the newline string at the end of the list
+		features = features.split('\n')[:-1] #split rest of file contents into a list of strings and drop last line(empty string)
 		i = 0
 		while i < (len(features)): #iterate through the individual string
 
 			##stems##
 			if features[i][0] == 'S' and features[i][1].isdigit():
-				self._parseStemData(features[i].split(' '))
+				self._parseStemData(features[i].strip().split(' '))
 
 			##Hairpins##
 			elif features[i][0] == 'H':
@@ -208,7 +221,7 @@ class Structure:
 
 			##Ends##
 			elif features[i][0] == 'E':
-				self._parseEndData(features[i].split(' '))
+				self._parseEndData(features[i].strip().split(' '))
 
 			i += 1 #increment counter
 
