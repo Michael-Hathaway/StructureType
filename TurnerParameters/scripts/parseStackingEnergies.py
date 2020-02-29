@@ -23,28 +23,28 @@ parameters: (filename) -- string -- name of the file to be parsed
 Return Type: Dictionary representing the file information
 '''
 def parseTurnerParametersStacking(filename):
-	try: #try to open the provided file
-		f = open(filename, 'r')
-	except: #error handling
-		print(f'An error occurred when trying to acess the file: {filename}')
-		sys.exit()
+    try: #try to open the provided file
+        f = open(filename, 'r')
+    except: #error handling
+        print(f'An error occurred when trying to acess the file: {filename}')
+        sys.exit()
 
-	#skip header and start at line 18
-	for i in range(18):
-		next(f)
+    #skip header and start at line 18
+    for i in range(18):
+        next(f)
 
-	#read the rest of the file contents
-	text = f.read()
-	rows = []
-	for line in text.split('\n'): #break text into lines
-		rows.append(line.rstrip('\r\n').lstrip()) #add lines after stripping extra characters and spaces
+    #read the rest of the file contents
+    text = f.read()
+    rows = []
+    for line in text.split('\n'): #break text into lines
+        rows.append(line.rstrip('\r\n').lstrip()) #add lines after stripping extra characters and spaces
 
-	blocks = []
-	for i in range(len(rows)): #break file into list of seperate parameter blocks
-		if rows[i].count('Y') == 4 and rows[i+1].count('-') > 20:
-			blocks.append([line.split() for  line in (rows[i+5:i+7] + rows[i+8:i+12])]) #only get labels and values
+    blocks = []
+    for i in range(len(rows)): #break file into list of seperate parameter blocks
+        if rows[i].count('Y') == 4 and rows[i+1].count('-') > 20:
+            blocks.append([line.split() for  line in (rows[i+5:i+7] + rows[i+8:i+12])]) #only get labels and values
 
-	return _parseBlocks(blocks)
+    return _parseBlocks(blocks)
 
 
 '''
@@ -54,42 +54,42 @@ parameters: (blocks) -- list -- list of stacking energy data produced by parseTu
 Return Type: Dictionary
 '''
 def _parseBlocks(blocks):
-	stackDict = {}
+    stackDict = {}
 
-	#iterate through blocks
-	for block in blocks:
-		#get labels for the preceding base pairs
-		label1 = [pair[0] for pair in block[0]]
-		label2 = [pair[0] for pair in block[1]]
-		basePairLabels = list(zip(label1, label2))
+    #iterate through blocks
+    for block in blocks:
+        #get labels for the preceding base pairs
+        label1 = [pair[0] for pair in block[0]]
+        label2 = [pair[0] for pair in block[1]]
+        basePairLabels = list(zip(label1, label2))
 
-		for label in basePairLabels:
-			if label not in stackDict.keys():
-				stackDict[label] = dict()
+        for label in basePairLabels:
+            if label not in stackDict.keys():
+                stackDict[label] = dict()
 
-		nucleotideLabels = ['A', 'C', 'G', 'U'] #labels for rows and columns in file
-		for i in range(2, len(block)): #iterate through 4 value lines in block
-			for index, value in enumerate(block[i]):
-				# i-2 in nucleiotideLabels will be column label
-				# index%4 in nucleotide labels will be row label
-				# index//4 will be preceding pair from basePairLabels
-				precedingLabel = basePairLabels[index//4]
-				followingLabel = (nucleotideLabels[i-2], nucleotideLabels[index%4])
-				if value != '.':
-					stackDict[precedingLabel][followingLabel] = float(value)
+        nucleotideLabels = ['A', 'C', 'G', 'U'] #labels for rows and columns in file
+        for i in range(2, len(block)): #iterate through 4 value lines in block
+            for index, value in enumerate(block[i]):
+                # i-2 in nucleiotideLabels will be column label
+                # index%4 in nucleotide labels will be row label
+                # index//4 will be preceding pair from basePairLabels
+                precedingLabel = basePairLabels[index//4]
+                followingLabel = (nucleotideLabels[i-2], nucleotideLabels[index%4])
+                if value != '.':
+                    stackDict[precedingLabel][followingLabel] = float(value)
 
-	return stackDict
+    return stackDict
 
 '''
 Function: writeToPythonFile(stackDict, dictName)
 Description: Function creates a new python file and writes the stacking energy dictionary to it.
 parameters: (stackDict) - dictionary contents produced by the parseTurnerParametersStacking() function
-			(dictName) - name of the dictionary and the file to be produced
+            (dictName) - name of the dictionary and the file to be produced
 Return Type: None
 '''
 def writeToPythonFile(stackDict, dictName):
-	with open(f'{dictName}.py', 'w') as f:
-		f.write(f'{dictName} = {stackDict}')
+    with open(f'{dictName}.py', 'w') as f:
+        f.write(f'{dictName} = {stackDict}')
 
 '''
 Function: parseArgs()
@@ -98,16 +98,16 @@ parameters: None
 Return Type: tuple containing the input file name and the output file name
 '''
 def parseArgs():
-	parser = argparse.ArgumentParser(description="Turner Parameters Parser for Watson Crick Stacking values.")
-	parser.add_argument('Input_File', help="Specify file to be parsed.", type=str)
-	parser.add_argument('Dictionary_Name', help="specify name of the dictionary and file to write dictionary to.", type=str)
+    parser = argparse.ArgumentParser(description="Turner Parameters Parser for Watson Crick Stacking values.")
+    parser.add_argument('Input_File', help="Specify file to be parsed.", type=str)
+    parser.add_argument('Dictionary_Name', help="specify name of the dictionary and file to write dictionary to.", type=str)
 
-	args = parser.parse_args()
-	return (args.Input_File, args.Dictionary_Name)
+    args = parser.parse_args()
+    return (args.Input_File, args.Dictionary_Name)
 
 
 ## Main Function ##
 if __name__ == '__main__':
-	args = parseArgs()
-	stackDict = parseTurnerParametersStacking(args[0])
-	writeToPythonFile(stackDict, args[1])
+    args = parseArgs()
+    stackDict = parseTurnerParametersStacking(args[0])
+    writeToPythonFile(stackDict, args[1])
