@@ -221,7 +221,7 @@ self._pk -- Int -- The pseudoknot the hairpin is a part of, if any(default value
                   C
                 A   G
               G       A
-               C     G <- first mismatch
+               C     G <- first mismatch = ('C', 'G')
                 A - U <- _Closing Pair = ('A', 'U')
                 C - G
                 G - C
@@ -531,8 +531,8 @@ self._strict -- bool -- boolean used to control whether energy is calculated str
              ^5' closing pair
 
 '''
-class InnerLoop:
-    # __init__ method for InnerLoop object
+class InternalLoop:
+    # __init__ method for InternalLoop object
     def __init__(self, pLabel=None, label5p=None, label3p=None,  loop5p='', loop3p='', loop5pSpan=(-1, -1), loop3pSpan=(-1, -1), closingPairs=(('', ''), ('', '')), closingPairsSpan=((-1, -1), (-1, -1))):
         self._parentLabel = pLabel
         self._5pLabel = label5p

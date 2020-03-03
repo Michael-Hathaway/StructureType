@@ -13,7 +13,7 @@ import sys
 import re
 
 ## Structure Type Component Imports ##
-from StructureComponents import Stem, Hairpin, Bulge, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
+from StructureComponents import Stem, Hairpin, Bulge, InternalLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
 
 '''
 ## About the structure object ##
@@ -49,7 +49,7 @@ class Structure:
         self._stems = {}
         self._hairpins = {}
         self._bulges = {}
-        self._innerLoops = {}
+        self._internalLoops = {}
         self._multiLoops = {}
         self._externalLoops = {}
         self._pk = {}
@@ -107,7 +107,7 @@ class Structure:
         self._stems.clear()
         self._hairpins.clear()
         self._bulges.clear()
-        self._innerLoops.clear()
+        self._internalLoops.clear()
         self._multiLoops.clear()
         self._externalLoops.clear()
         self._pk.clear()
@@ -229,7 +229,7 @@ class Structure:
 
             ##Inner Loops##
             elif features[i][0] == 'I' and re.search('I\d{1,3}.1', features[i]):
-                self._parseInnerLoopData(features[i].split(' '), features[i+1].split(' ')) #pass both inner loop components
+                self._parseInternalLoopData(features[i].split(' '), features[i+1].split(' ')) #pass both inner loop components
 
             ##MultiLoops##
             elif features[i][0] == 'M':
@@ -502,15 +502,16 @@ class Structure:
 
 
     '''
-    Function Name: _parseInnerLoopData()
+    Function Name: _parseInternalLoopData()
     Description: Internal method used by _loadFile() to parse all the inner loop information in the
     structure type file into the Structureobject
     Parameters:
-            (innerLoopData) - list - list of data from a line in the structure type file describing an inner loop
+            (loop1) - list - list of data from a line in the structure type file describing the 5' loop of an Internal Loop
+            (loop2) - list - list of data from a line in the structure type file describing the 3' loop of an Internal Loop
     Return Type:
             None
     '''
-    def _parseInnerLoopData(self, loop1, loop2):
+    def _parseInternalLoopData(self, loop1, loop2):
         #get Inner Loop parent Label
         parentLabel = ''
         for char in loop1[0]:
@@ -609,10 +610,10 @@ class Structure:
         #store closing pair as a tuple
         closingPairs = ((loop1[4][0], loop1[4][2]), (loop2[4][2], loop2[4][0]))
 
-        newInnerLoop = InnerLoop(parentLabel, loop1SubunitLabel, loop2SubunitLabel, loop1Seq, loop2Seq, (loop1StartIndex, loop1StopIndex),
+        newInternalLoop = InternalLoop(parentLabel, loop1SubunitLabel, loop2SubunitLabel, loop1Seq, loop2Seq, (loop1StartIndex, loop1StopIndex),
                                 (loop2StartIndex, loop2StopIndex), closingPairs,((loop1ClosingPairStart, loop1ClosingPairEnd), (loop2ClosingPairEnd, loop2ClosingPairStart)))
-        self._addInnerLoopToComponentArray(newInnerLoop)
-        self.addInnerLoop(parentLabel, newInnerLoop)
+        self._addInternalLoopToComponentArray(newInternalLoop)
+        self.addInternalLoop(parentLabel, newInternalLoop)
 
 
 
@@ -989,17 +990,17 @@ class Structure:
             self._componentArray[i] = end.label()
 
     '''
-    Function Name: _addInnerLoopToComponentArray(innerLoop)
+    Function Name: _addInternalLoopToComponentArray(InternalLoop)
     Description: Internal method used in _loadFile() that adds an inner loop to the component array
     Parameters:
-            (innerLoop) - InnerLoop object - inner loop to be added to the component array
+            (internalLoop) - InternalLoop object - inner loop to be added to the component array
     Return Type:
             None
     '''
-    def _addInnerLoopToComponentArray(self, innerLoop):
-        for pair in innerLoop.span():
+    def _addInternalLoopToComponentArray(self, internalLoop):
+        for pair in internalLoop.span():
             for i in range(pair[0]-1, pair[1]):
-                self._componentArray[i] = innerLoop.label()
+                self._componentArray[i] = internalLoop.label()
 
     '''
     Function Name: _addExternalLoopToComponentArray(el)
@@ -1365,76 +1366,76 @@ class Structure:
 
 
     '''
-    Function Name: addInnerLoop(parentLabel, subunitLabel, newInnerLoop)
-    Description: function to add a new InnerLoop object to the Structureobject
+    Function Name: addInternalLoop(parentLabel, subunitLabel, newInternalLoop)
+    Description: function to add a new InternalLoop object to the Structureobject
     Parameters:
             (parentLabel) - str - parent key value for the Inner loop to be added
-            (newInnerLoop) - InnerLoop object - InnerLoop object to be stored at the the given key in the self._innerLoops dictionary
+            (newInternalLoop) - InternalLoop object - InternalLoop object to be stored at the the given key in the self._internalLoops dictionary
     Return Type:
             None
     '''
-    def addInnerLoop(self, parentLabel, newInnerLoop):
-        self._innerLoops[parentLabel] = newInnerLoop
+    def addInternalLoop(self, parentLabel, newInternalLoop):
+        self._internalLoops[parentLabel] = newInternalLoop
 
 
     '''
-    Function Name: innerLoopLabels()
+    Function Name: InternalLoopLabels()
     Description: Function to return a list of all the inner loop labels in the Structure object
     Parameters:
             None
     Return Type:
              list
     '''
-    def innerLoopLabels(self):
-        return list(self._innerLoops.keys())
+    def internalLoopLabels(self):
+        return list(self._internalLoops.keys())
 
 
     '''
-    Function Name: innerLoops()
-    Description: Function to return a list of the InnerLoop objects in the Structure object
+    Function Name: InternalLoops()
+    Description: Function to return a list of the InternalLoop objects in the Structure object
     Parameters:
             None
     Return Type:
             list
     '''
-    def innerLoops(self, label=None):
+    def internalLoops(self, label=None):
         if label:
-            return self._getInnerLoopByLabel(label)
+            return self._getInternalLoopByLabel(label)
         else:
-            return list(self._innerLoops.values())
+            return list(self._internalLoops.values())
 
 
     '''
-    Function Name: numInnerLoops()
+    Function Name: numInternalLoops()
     Description: function to get the number of inner loops in a Structure object
     Parameters:
             None
     Return Type:
              int
     '''
-    def numInnerLoops(self):
-        return len(self._innerLoops)
+    def numInternalLoops(self):
+        return len(self._internalLoops)
 
 
     '''
-    Function Name: getInnerLoopByLabel(label)
-    Description: returns InnerLoop object stored at the given key value
+    Function Name: getInternalLoopByLabel(label)
+    Description: returns InternalLoop object stored at the given key value
     Parameters:
             (label) - str - the key value for the inner loop to be accessed
     Return Type:
-             InnerLoop object
+             InternalLoop object
     '''
-    def _getInnerLoopByLabel(self, label):
+    def _getInternalLoopByLabel(self, label):
         try:
-            innerLoop = self._innerLoops[label]
-            return innerLoop
+            internalLoop = self._internalLoops[label]
+            return internalLoop
         except KeyError:
-            print(f'Inner Loop: {label} not found.')
+            print(f'Internal Loop: {label} not found.')
             return None
 
 
     '''
-    Function Name: getInnerLoopSubunitByLabel(parentLabel, subunitLabel)
+    Function Name: getInternalLoopSubunitByLabel(parentLabel, subunitLabel)
     Description:
     Parameters:
              (parentLabel) - str - parent label for inner loop object
@@ -1448,26 +1449,26 @@ class Structure:
                     'span' :
                 }
     '''
-    def getInnerLoopSubunit(self, parentLabel, subunitLabel):
-        innerLoop = None
+    def getInternalLoopSubunit(self, parentLabel, subunitLabel):
+        internalLoop = None
         try:
-            innerLoop = self._innerLoops[parentLabel]
+            internalLoop = self._internalLoops[parentLabel]
         except KeyError:
             print(f'Inner Loop: {parentLabel} not found.')
 
 
         if subunitLabel == '1':
             subunit = {
-                'label' : f'{innerLoop._parentLabel}.1',
-                'Sequence' : innerLoop._5pSequence,
-                'span' : innerLoop._span5p,
+                'label' : f'{internalLoop._parentLabel}.1',
+                'Sequence' : internalLoop._5pSequence,
+                'span' : internalLoop._span5p,
             }
             return subunit
         elif subunitLabel == '2':
             subunit = {
-                'label' : f'{innerLoop._parentLabel}.2',
-                'Sequence' : innerLoop._3pSequence,
-                'span' : innerLoop._span5p,
+                'label' : f'{internalLoop._parentLabel}.2',
+                'Sequence' : internalLoop._3pSequence,
+                'span' : internalLoop._span5p,
             }
             return subunit
         else:
@@ -1765,7 +1766,6 @@ class Structure:
     type of structure type component you will be accessing if you are(for example) looping through the entire array
     Parameters:
             (label) - str - label of the feature to be accessed
-            (subLabel=None) - str - sublabel for components like innerloops and multiloops, default value is None and it will not be used unless specified.
     Return Type:
             StructureComponent object
     '''
@@ -1782,8 +1782,8 @@ class Structure:
             return self._getEndByLabel(label)
         elif label[0] == 'N':
             return self._getNCBPByLabel(label)
-        elif label[0] == 'I': #search is for innerloop
-            return self._getInnerLoopByLabel(label)
+        elif label[0] == 'I':
+            return self._getInternalLoopByLabel(label)
         else:
             #if label is not handled by any of these blocks
             print(f'Label: {label} not found in Structure object.')
@@ -1809,7 +1809,7 @@ class Structure:
                 adjacentFeatures.append(self._componentArray[span[1]] if not object else self.component(self._componentArray[span[1]]))
 
                 return tuple(adjacentFeatures)
-            else: #tuple containes other tuples within it(example: innerLoop locations)
+            else: #tuple containes other tuples within it(example: InternalLoop locations)
                 adjacentFeatures.append(self._componentArray[span[0][0]-2] if not object else self.component(self._componentArray[span[0][0]-2]))
                 adjacentFeatures.append(self._componentArray[span[0][1]] if not object else self.component(self._componentArray[span[0][1]]))
                 adjacentFeatures.append(self._componentArray[span[1][0]-2] if not object else self.component(self._componentArray[span[1][0]-2]))
@@ -1842,7 +1842,7 @@ class Structure:
         if(self._hairpins):
             featureLabels.extend(self.hairpinLabels())
 
-        if(self._innerLoops):
-            featureLabels.extend(self.innerLoopLabels())
+        if(self._internalLoops):
+            featureLabels.extend(self.internalLoopLabels())
 
         return featureLabels
