@@ -1787,3 +1787,30 @@ class Structure:
         else: #otherwise print error and return None
             print('The label provided does not identify a feature of this molecule.')
             return None
+
+
+    """
+    Function: features()
+    Description: Function to return a list of all the StructureComponent labels in a bpRNAStructure object
+    Parameters:
+            None
+    Return Value:
+            list of strings, each string is the label for a StructureComponent in the bpRNAStructure
+            *Currently only return the StructureComponents: stems, bulges, hairpins, and inner loops
+    """
+    def features(self):
+        featureLabels = []
+
+        if(self._stems):
+            featureLabels.extend(self.stemLabels())
+
+        if(self._bulges):
+            featureLabels.extend(self.bulgeLabels())
+
+        if(self._hairpins):
+            featureLabels.extend(self.hairpinLabels())
+
+        if(self._innerLoops):
+            featureLabels.extend(self.innerLoopLabels())
+
+        return featureLabels

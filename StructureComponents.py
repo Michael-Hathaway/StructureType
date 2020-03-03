@@ -52,7 +52,7 @@ CANONICAL_BASE_PAIRS = [('A', 'U'), ('U', 'A'), ('G', 'C'), ('C', 'G'), ('G', 'U
 Logging file will be used to record errors associated with the StructureComponent energy functions. These errors
 are usually related to missing parameters for the energy calculation.
 '''
-logging.basicConfig(filename='./StructureComponents.log', level=logging.WARNING, filemode='w', format='%(process)d - %(levelname)s - %(message)s')
+logging.basicConfig(filename='./StructureComponents.log', level=logging.WARNING, filemode='a', format='%(process)d - %(levelname)s - %(message)s')
 
 
 '''
