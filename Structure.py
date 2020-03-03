@@ -79,9 +79,44 @@ class Structure:
         return self._length
 
 
-###########################
-###### Load File ##########
-###########################
+####################################################
+###### Load File and Associated Functions ##########
+####################################################
+
+    '''
+    Function: _resetStructure()
+    Description: Function resets all Structure member variables to None. Function is called when a file cannot be completley parsed.
+    Parameters:
+            None
+    Return Value:
+            None
+    '''
+    def _resetStructure(self):
+        #reset basic molecule information
+        self._name = None
+        self._length = None
+        self._pageNum = None
+
+        #reset all structure representations of the molecule
+        self._sequence = None
+        self._DBN = None
+        self._structureArray = None
+        self._varna = None
+
+        #reset all StructureComponent dictionaries
+        self._stems.clear()
+        self._hairpins.clear()
+        self._bulges.clear()
+        self._innerLoops.clear()
+        self._multiLoops.clear()
+        self._externalLoops.clear()
+        self._pk.clear()
+        self._ncbp.clear()
+        self._ends.clear()
+
+        #reset component array
+        self._componentArray = None
+
 
     '''
     Function Name: loadFile(filename)
@@ -111,17 +146,14 @@ class Structure:
         # check that file is valid structure type
         if filename[-3::] != '.st':
             print('Must provide a valid structure type file.')
-            return None
 
         #try to open the provided file + error handling
         try:
             f = open(filename, 'r')
         except OSError: #error finding or opening file
             print('An error ocurred when trying to access the file. Check to make sure that the file exists and that the correct filepath was provided.')
-            return None
         except: #something weird happened
             print('Something unexpected ocurred when accessing the file')
-            return None
 
 
         #Variables to validate all features have been read
@@ -176,7 +208,7 @@ class Structure:
                         break
                     else:
                         print(f'File: {filename} is not proper .st format')
-                        return None
+                        self._resetStructure() #reset the Structure object
 
 
         features = features.split('\n')[:-1] #split rest of file contents into a list of strings and drop last line(empty string)

@@ -21,11 +21,11 @@ from StackTerminalMismatches import StackTerminalMismatches #stacking terminal m
 from SpecialHairpins import SpecialHairpins #special case hairpins with precalculated energies
 
 ## Free Energy Parameter Constants ##
-INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value
 R = 0.001987204258 #source: https://en.wikipedia.org/wiki/Gas_constant
 T = 310.15
 
 #Stems(source: https://rna.urmc.rochester.edu/NNDB/turner04/wc-parameters.html)
+INTERMOLECULAR_INIT = 4.09 #intermolecular initiation value
 STEM_SYMMETRY_PENALTY = 0.43
 STEM_AU_END_PENALTY = 0.45
 
@@ -215,7 +215,7 @@ self._sequenceLen -- Int -- the length of the hairpin as measured in number of n
 self._span -- (int, int) -- tuple containing the integer start and stop indices for the hairpin.
 self._closingPair -- (string, string) -- tuple containing two single character strings. The first character corresponds to the 5' base in the closing pair. The second character is the 3' base in the closing pair.
 self._closing_span -- (int, int) -- tuple containing two integers. The first integer is the index location of the 5' base in the closing pair. The second integer is the index location of the 3'base in the closing pair.
-self._pk -- Int -- ???
+self._pk -- Int -- The pseudoknot the hairpin is a part of, if any(default value is None)
 
 
                   C
@@ -376,7 +376,7 @@ self._closingPair5p -- (string, string) -- Tuple containing 2 single character s
 self._closingPair5pSpan -- (int, int) -- Tuple containing 2 integers. The first integer is the index of the 5' base in 5' closing pair for the bule. The second integer is the index of the 3' base in the 5' closing pair
 self._closingPair3p -- (string, string) -- Tuple containing 2 single character strings. The first string the the 5' base in 3' closing pair for the bule. The second character is the 3' base in the 3' closing pair.
 self._closingPair3pSpan -- (int, int) -- Tuple containing 2 integers. The first integer is the index of the 5' base in 3' closing pair for the bule. The second integer is the index of the 3' base in the 3' closing pair
-self._pk -- int -- ???
+self._pk -- int -- the pseudoknot the bulge is a part of, if any(default value is None)
 
 
 
@@ -479,8 +479,8 @@ class Bulge:
 
             #check for special C bulge case
             #special C condition = sequence is all 'C' with at least one adjacent 'C'
-            specialC = 0
-            cCount = 0
+            specialC = 0 #specialC stores the SPECIAL_C_BULGE value being applied to the particular bulge
+            cCount = 0 #cCount stores the number of adjacent C's for the number of states component of the equation
             if self._sequence == 'C' and (self._closingPair5p[0] == 'C' or self._closingPair3p[0] == 'C'):
                 specialC = SPECIAL_C_BULGE
                 cCount = 1 #number of possible states due to adjacent C's
