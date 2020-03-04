@@ -256,6 +256,9 @@ class Structure:
 
             i += 1 #increment counter
 
+        #add neighbors to structure component Objects
+        self._addStructureComponentNeighbors()
+
         f.close() #close the file
 
 
@@ -442,7 +445,7 @@ class Structure:
         for char in bulgeData[3]:
             if char.isnumeric():
                 precedingPair5pIndex += char
-            elif char == ':':
+            elif char == ',':
                 break
         precedingPair5pIndex = int(precedingPair5pIndex)
 
@@ -451,7 +454,7 @@ class Structure:
         for char in reversed(bulgeData[3]):
             if char.isnumeric():
                 precedingPair3pIndex += char
-            elif char == ':':
+            elif char == ',':
                 break
         precedingPair3pIndex = int(precedingPair3pIndex[::-1])
 
@@ -466,7 +469,7 @@ class Structure:
         for char in bulgeData[5]:
             if char.isnumeric():
                 trailingPair5pIndex += char
-            elif char == ':':
+            elif char == ',':
                 break
         trailingPair5pIndex = int(trailingPair5pIndex)
 
@@ -475,15 +478,21 @@ class Structure:
         for char in reversed(bulgeData[5]):
             if char.isnumeric():
                 trailingPair3pIndex += char
-            elif char == ':':
+            elif char == ',':
                 break
         trailingPair3pIndex = int(trailingPair3pIndex[::-1])
 
-        #get 5' base of trailing pair
+        #get 5' and 3' bases of trailing pair
         trailingPair5pBase = bulgeData[6][0]
-
-        #get 3' base in trailing pair
         trailingPair3pBase = bulgeData[6][2]
+
+        #need to make sure trailing pair is ordered correctly
+        if(abs(bulge_stop - trailingPair5pIndex) > abs(bulge_stop - trailingPair3pIndex)):
+            trailingBasePair = (trailingPair3pBase, trailingPair5pBase)
+            trailingBasePairIndex = (trailingPair3pIndex, trailingPair5pBase)
+        else:
+            trailingBasePair = (trailingPair5pBase, trailingPair3pBase)
+            trailingBasePairIndex = (trailingPair5pIndex, trailingPair3pIndex)
 
         #get pk info
         if bulgeData[7] != '':
@@ -493,8 +502,8 @@ class Structure:
 
 
         newBulge = Bulge(bulgeLabel, bulge_seq, (bulge_start, bulge_stop), (precedingPair5pBase, precedingPair3pBase),
-                        (precedingPair5pIndex, precedingPair3pIndex), (trailingPair5pBase, trailingPair3pBase),
-                        (trailingPair5pIndex, trailingPair3pIndex), pk)
+                        (precedingPair5pIndex, precedingPair3pIndex), trailingBasePair,
+                        trailingBasePairIndex, pk)
         self._addBulgeToComponentArray(newBulge)
         self.addBulge(bulgeLabel, newBulge)
 
@@ -932,6 +941,28 @@ class Structure:
     '''
     def _parseSegmentData(self, segData):
         pass
+
+
+##############################################
+###### Add StructureComponent Neighbors ######
+##############################################
+
+    '''
+    Function Name: _addStructureComponentNeighbors()
+    Description:
+    Parameters:
+    Return Value:
+    '''
+    def _addStructureComponentNeighbors(self):
+        allStructureComponentLabels = self.features() #get all labels for StructureComponents in Structure
+
+        for feature in allStructureComponentLabels: #iterate through all labels
+            try:
+                structureComponent = self.component(feature) #get the StructureComponent object for a given label
+                neighbors = self.neighbors(feature) #get neighbors of the feature
+                structureComponent._addNeighbors(neighbors[0], neighbors[1]) #add neighbors to StructureComponent object
+            except:
+                continue
 
 
 #############################
@@ -1745,7 +1776,7 @@ class Structure:
     Return Type:
              End Object
     '''
-    def getEndByLabel(self, endLabel):
+    def _getEndByLabel(self, endLabel):
         try:
             end = self._ends[endLabel]
             return end
@@ -1805,19 +1836,27 @@ class Structure:
         if label in self._componentArray: #check if the feature is valid
             span = self.component(label).span() #get index locations of the feature
             if all(type(i) is int for i in span): #tuple only containes integer index locations(example: bulge location)
-                adjacentFeatures.append(self._componentArray[span[0]-2] if not object else self.component(self._componentArray[span[0]-2]))
-                adjacentFeatures.append(self._componentArray[span[1]] if not object else self.component(self._componentArray[span[1]]))
+                try: #try/except block will handle ends which only have one neighbor and one out of range index
+                    neighbor5p = (self._componentArray[span[0]-2] if not object else self.component(self._componentArray[span[0]-2]))
+                except:
+                    neighbor5p = None
 
-                return tuple(adjacentFeatures)
+                try: #try/except block will handle ends which only have one neighbor and one out of range index
+                    neighbor3p = (self._componentArray[span[1]] if not object else self.component(self._componentArray[span[1]]))
+                except:
+                    neighbor3p = None
+
+                adjacentFeatures = (neighbor5p, neighbor3p)
+
             else: #tuple containes other tuples within it(example: InternalLoop locations)
-                adjacentFeatures.append(self._componentArray[span[0][0]-2] if not object else self.component(self._componentArray[span[0][0]-2]))
-                adjacentFeatures.append(self._componentArray[span[0][1]] if not object else self.component(self._componentArray[span[0][1]]))
-                adjacentFeatures.append(self._componentArray[span[1][0]-2] if not object else self.component(self._componentArray[span[1][0]-2]))
-                adjacentFeatures.append(self._componentArray[span[1][1]] if not object else self.component(self._componentArray[span[1][1]]))
+                seq1_neighbor5p = (self._componentArray[span[0][0]-2] if not object else self.component(self._componentArray[span[0][0]-2]))
+                seq1_neighbor3p = (self._componentArray[span[0][1]] if not object else self.component(self._componentArray[span[0][1]]))
+                seq2_neighbor5p = (self._componentArray[span[1][0]-2] if not object else self.component(self._componentArray[span[1][0]-2]))
+                seq2_neighbor3p = (self._componentArray[span[1][1]] if not object else self.component(self._componentArray[span[1][1]]))
+                adjacentFeatures = ((seq1_neighbor5p, seq1_neighbor3p), (seq2_neighbor5p, seq2_neighbor3p))
 
-                return tuple(adjacentFeatures)
+            return adjacentFeatures
         else: #otherwise print error and return None
-            print('The label provided does not identify a feature of this molecule.')
             return None
 
 
@@ -1833,16 +1872,9 @@ class Structure:
     def features(self):
         featureLabels = []
 
-        if(self._stems):
-            featureLabels.extend(self.stemLabels())
-
-        if(self._bulges):
-            featureLabels.extend(self.bulgeLabels())
-
-        if(self._hairpins):
-            featureLabels.extend(self.hairpinLabels())
-
-        if(self._internalLoops):
-            featureLabels.extend(self.internalLoopLabels())
+        featureLabels.extend(self.stemLabels())
+        featureLabels.extend(self.bulgeLabels())
+        featureLabels.extend(self.hairpinLabels())
+        featureLabels.extend(self.internalLoopLabels())
 
         return featureLabels
