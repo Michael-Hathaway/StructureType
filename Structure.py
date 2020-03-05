@@ -258,6 +258,8 @@ class Structure:
 
         #add neighbors to structure component Objects
         self._addStructureComponentNeighbors()
+        #add stem neighboring bulge boolean controls
+        self._addStemBulgeNeighborBooleans()
 
         f.close() #close the file
 
@@ -949,9 +951,11 @@ class Structure:
 
     '''
     Function Name: _addStructureComponentNeighbors()
-    Description:
+    Description: Function fills in the neighboring structure information for each of the StructureComponent objects contained in the Structure object
     Parameters:
+            None
     Return Value:
+            None
     '''
     def _addStructureComponentNeighbors(self):
         allStructureComponentLabels = self.features() #get all labels for StructureComponents in Structure
@@ -961,7 +965,7 @@ class Structure:
                 structureComponent = self.component(feature) #get the StructureComponent object for a given label
                 neighbors = self.neighbors(feature) #get neighbors of the feature
                 structureComponent._addNeighbors(neighbors[0], neighbors[1]) #add neighbors to StructureComponent object
-            except:
+            except: #will skip NCBPs and MultiLoops
                 continue
 
 
@@ -1171,6 +1175,39 @@ class Structure:
 ###################
 ###### STEMS ######
 ###################
+
+
+    '''
+    Function Name: _addStemBulgeNeighborBooleans()
+    Description: Function fills in boolean values for whether or not each stem object is adjacent to a bulge of length 1
+    Parameters:
+            None
+    Return value:
+            None
+    '''
+    def _addStemBulgeNeighborBooleans(self):
+        for stem in self.stems(): #iterate through stems
+            neighbor5p, neighbor3p = self.neighbors(stem.label(), object=True) #get neighbors
+            bool5p, bool3p = False, False
+
+            #check if a 5' neighbor is a length=1 bulge and if so change bool5p to True
+            if(neighbor5p[0] != 'EOM' and neighbor5p[0].label()[0] == 'B'):
+                if (neighbor5p[0].sequenceLen() == 1):
+                    bool5p = True
+            elif(neighbor5p[1] != 'EOM' and neighbor5p[1].label()[0] == 'B'):
+                if (neighbor5p[1].sequenceLen() == 1):
+                    bool5p = True
+
+            #check if a 3' neighbor is a length=1 bulge and if so change bool3p to True
+            if(neighbor3p[0] != 'EOM' and neighbor3p[0].label()[0] == 'B'):
+                if (neighbor3p[0].sequenceLen() == 1):
+                    bool3p = True
+            elif(neighbor3p[1] != 'EOM' and neighbor3p[1].label()[0] == 'B'):
+                if (neighbor3p[1].sequenceLen() == 1):
+                    bool3p = True
+
+            stem._addAdjacentBulgeBoolean(bool5p, bool3p)
+
 
     '''
     Function Name: addStem()
@@ -1815,6 +1852,8 @@ class Structure:
             return self._getNCBPByLabel(label)
         elif label[0] == 'I':
             return self._getInternalLoopByLabel(label)
+        elif label[0] == 'M':
+            return self._getMultiLoopByLabel(label)
         else:
             #if label is not handled by any of these blocks
             print(f'Label: {label} not found in Structure object.')
@@ -1839,21 +1878,37 @@ class Structure:
                 try: #try/except block will handle ends which only have one neighbor and one out of range index
                     neighbor5p = (self._componentArray[span[0]-2] if not object else self.component(self._componentArray[span[0]-2]))
                 except:
-                    neighbor5p = None
+                    neighbor5p = 'EOM' # 'End of Molecule'
 
                 try: #try/except block will handle ends which only have one neighbor and one out of range index
                     neighbor3p = (self._componentArray[span[1]] if not object else self.component(self._componentArray[span[1]]))
                 except:
-                    neighbor3p = None
+                    neighbor3p = 'EOM'
 
                 adjacentFeatures = (neighbor5p, neighbor3p)
 
             else: #tuple containes other tuples within it(example: InternalLoop locations)
-                seq1_neighbor5p = (self._componentArray[span[0][0]-2] if not object else self.component(self._componentArray[span[0][0]-2]))
-                seq1_neighbor3p = (self._componentArray[span[0][1]] if not object else self.component(self._componentArray[span[0][1]]))
-                seq2_neighbor5p = (self._componentArray[span[1][0]-2] if not object else self.component(self._componentArray[span[1][0]-2]))
-                seq2_neighbor3p = (self._componentArray[span[1][1]] if not object else self.component(self._componentArray[span[1][1]]))
-                adjacentFeatures = ((seq1_neighbor5p, seq1_neighbor3p), (seq2_neighbor5p, seq2_neighbor3p))
+                try: #try/except block will handle ends which only have one neighbor and one out of range index
+                    seq1_neighbor5p = (self._componentArray[span[0][0]-2] if not object else self.component(self._componentArray[span[0][0]-2]))
+                except:
+                    seq1_neighbor5p = 'EOM'
+
+                try: #try/except block will handle ends which only have one neighbor and one out of range index
+                    seq1_neighbor3p = (self._componentArray[span[0][1]] if not object else self.component(self._componentArray[span[0][1]]))
+                except:
+                    seq1_neighbor3p = 'EOM'
+
+                try: #try/except block will handle ends which only have one neighbor and one out of range index
+                    seq2_neighbor5p = (self._componentArray[span[1][0]-2] if not object else self.component(self._componentArray[span[1][0]-2]))
+                except:
+                    seq2_neighbor5p = 'EOM'
+
+                try: #try/except block will handle ends which only have one neighbor and one out of range index
+                    seq2_neighbor3p = (self._componentArray[span[1][1]] if not object else self.component(self._componentArray[span[1][1]]))
+                except:
+                    seq2_neighbor3p = 'EOM'
+
+                adjacentFeatures = ((seq1_neighbor5p, seq2_neighbor3p), (seq2_neighbor5p, seq1_neighbor3p))
 
             return adjacentFeatures
         else: #otherwise print error and return None

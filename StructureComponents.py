@@ -81,7 +81,7 @@ self._neighbor3p -- str -- label for 5' neighbor in Structure object
 '''
 class Stem:
     # __init__ method for stem object
-    def __init__(self, label="", sequence5p="", sequence3p="", sequence5pSpan=(-1, -1), sequence3pSpan=(-1, -1), neighbor5p=('', ''), neighbor3p=('', '')):
+    def __init__(self, label="", sequence5p="", sequence3p="", sequence5pSpan=(-1, -1), sequence3pSpan=(-1, -1), neighbor5p=('', ''), neighbor3p=('', ''), adjacentBulges=(False, False)):
         self._label = label #sequence label
         self._sequence5p = sequence5p #5' portion of stem
         self._sequence3p = sequence3p #3' portion of stem
@@ -91,6 +91,7 @@ class Stem:
         self._sequence3pSpan = sequence3pSpan #tuple containing start and stop indices of 3' prime portion of stem
         self._neighbor5p = neighbor5p
         self._neighbor3p = neighbor3p
+        self._adjacentBulges = adjacentBulges
 
     #define string representation of object
     def __str__(self):
@@ -167,6 +168,14 @@ class Stem:
     def sequence3pSpan(self):
         return self._sequence3pSpan
 
+    #function used during Structure object parsing to track if stem is next to length=1 bulges
+    def _addAdjacentBulgeBoolean(self, bulge5p, bulge3p):
+        self._adjacentBulges = (bulge5p, bulge3p)
+
+    #returns tuple containg booleans for whether or not the stem is adjacent to length=1 bulges
+    def _adjacentBulgeBoolean(self):
+        return self._adjacentBulges
+
     #internal method to set the 5' and 3' neighbors for a stem
     def _addNeighbors(self, neighbor5p, neighbor3p):
         self._neighbor5p = neighbor5p
@@ -178,7 +187,7 @@ class Stem:
 
     #Function to check if all base pairs in a stem are canonical base pairings
     def canonical(self):
-        return all(pair in CANONICAL_BASE_PAIRS for pair in self._sequence)
+        return (self._sequenceLen > 1 and all(pair in CANONICAL_BASE_PAIRS for pair in self._sequence))
 
     #function calculates the folding free energy change for the stem
     def energy(self, strict=True, init=False):
