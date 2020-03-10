@@ -204,9 +204,9 @@ class Stem:
 
         #check for AU end penalty
         endPenalty = 0
-        if seq[0] == ('A', 'U') or seq[0] == ('U', 'A'):
+        if (seq[0] == ('A', 'U') or seq[0] == ('U', 'A')) and (self._adjacentBulgeBoolean()[0] == False):
             endPenalty += STEM_AU_END_PENALTY
-        if seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A'):
+        if (seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A')) and (self._adjacentBulgeBoolean()[0] == False):
             endPenalty += STEM_AU_END_PENALTY
 
         #sum up watson crick stacking interactions
@@ -670,6 +670,14 @@ class InternalLoop:
     def neighbors(self):
         return (self._neighbor5p, self._neighbor3p)
 
+    #Function checks that the internal loop has the same 5' closing pair structures
+    def same5pNeighbors(self):
+        return (self._neighbor5p[0] == self._neighbor5p[1])
+
+    #Function checks that the internal loop has the same 3' closing pair structures
+    def same3pNeighbors(self):
+        return (self._neighbor3p[0] == self._neighbor3p[1])
+
     #Function to check if valid parameters are available to calculate inner loop energy
     def canonical(self):
         #Check if energy value is present for 1x1 loop
@@ -758,7 +766,7 @@ class InternalLoop:
         mismatchEnergy_3x2 = 0
         #check for mismatch condition between 5' closing pair and first mismatch
         if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch5p) in InnerLoopMismatches_2x3:
-            mismatchEnergy_3x2 += InnerLoopMismatches_2x3[(self._closingPairs[0], mismatch5p)]
+            mismatchEnergy_3x2 += InnerLoopMismatches_2x3[((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch5p)]
         else:
             logging.warning(f'In energy() function for 3x2 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[1][1], self._closingPairs[1][0])} and the 5\' mismatch: {mismatch5p}.')
             if (self._strict):
@@ -766,7 +774,7 @@ class InternalLoop:
 
         #check for mismatch condition between 3'closing pair and mismatch 2
         if ((self._closingPairs[0][1], self._closingPairs[0][0]), mismatch3p) in InnerLoopMismatches_2x3:
-            mismatchEnergy_3x2 += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
+            mismatchEnergy_3x2 += InnerLoopMismatches_2x3[((self._closingPairs[0][1], self._closingPairs[0][0]), mismatch3p)]
         else:
             logging.warning(f'In energy() function for 3x2 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[0][1], self._closingPairs[0][0])} and the 3\' mismatch: {mismatch3p}.')
             if (self._strict):
@@ -797,7 +805,7 @@ class InternalLoop:
 
         #check for mismatch condition between 3'closing pair and mismatch 2
         if ((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch3p) in InnerLoopMismatches_2x3:
-            mismatchEnergy_2x3 += InnerLoopMismatches_2x3[(self._closingPairs[1], mismatch3p)]
+            mismatchEnergy_2x3 += InnerLoopMismatches_2x3[((self._closingPairs[1][1], self._closingPairs[1][0]), mismatch3p)]
         else:
             logging.warning(f'In energy() function for 2x3 InnerLoop: {self._parentLabel}, no mismatch parameter for closing pair: {(self._closingPairs[1][1], self._closingPairs[1][0])} and the 3\' mismatch: {mismatch3p}.')
             if (self._strict):

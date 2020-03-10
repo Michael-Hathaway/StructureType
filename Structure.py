@@ -212,7 +212,7 @@ class Structure:
 
 
         features = features.split('\n')[:-1] #split rest of file contents into a list of strings and drop last line(empty string)
-        i = 0
+        i = 0 #while loop allows for indexing multiple file lines ahead of current. Used for Multiloops and Internal Loops that have multiple components
         while i < (len(features)): #iterate through the individual string
 
             ##stems##

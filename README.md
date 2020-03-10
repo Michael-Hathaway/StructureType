@@ -2,23 +2,11 @@
 <p> Project for Hendrix Lab | Oregon State University </p>
 
 <h3>Usage</h3>
-<p>To use this package clone this directory onto your machine and add the path to the directory to your PYTHONPATH environment varibale. This can be done by adding the following lines to your .bashrc or .zshrc file:
-<ul>
-    <li>export PYTHONPATH="${PYTHONPATH}:/path/to/bpRNAStructure"</li>
-    <li>export PYTHONPATH="${PYTHONPATH}:/path/to/bpRNAStructure/TurnerParameters/parameters"</li>
-</ul>
-The Structure and StructureComponent modules can them be imported using:
-<ul>
-    <li>'import Structure as ST'</li>
-    <li>'import StructureComponents as STC'</li>
-</ul>
-</p>
-<p>If that solution doesn't work, then try adding the following code at the beginning of a script using this package:<br>
+<p>To use this package clone this directory onto your machine and adding the following code at the beginning of a script using this package:<br>
 import sys <br>
 sys.path.insert(0, '/path/to/bpRNAStructure') <br>
 sys.path.insert(0, '/path/to/bpRNAStructure/TurnerParameters/parameters') <br>
 import Structure as ST <br>
-import StructureComponents as STC <br>
 </p>
 
 <p>In the future this package will be available for download using pip </p>
