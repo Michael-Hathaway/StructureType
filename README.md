@@ -4,7 +4,7 @@
 <h3>Usage</h3>
 <p>To use this package clone this directory onto your machine and adding the following code at the beginning of a script using this package:<br>
 import sys <br>
-sys.path.insert(0, '/path/to/bpRNAStructure') <br>
+sys.path.insert(0, '/path/to/directory_containing_bpRNAStructure') <br>
 import Structure as ST <br>
 </p>
 
