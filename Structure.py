@@ -13,7 +13,7 @@ import sys
 import re
 
 ## Structure Type Component Imports ##
-from StructureComponents import Stem, Hairpin, Bulge, InternalLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
+from .StructureComponents import Stem, Hairpin, Bulge, InternalLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
 
 '''
 ## About the structure object ##
@@ -146,14 +146,17 @@ class Structure:
         # check that file is valid structure type
         if filename[-3::] != '.st':
             print('Must provide a valid structure type file.')
+            return
 
         #try to open the provided file + error handling
         try:
             f = open(filename, 'r')
         except OSError: #error finding or opening file
             print('An error ocurred when trying to access the file. Check to make sure that the file exists and that the correct filepath was provided.')
+            return
         except: #something weird happened
             print('Something unexpected ocurred when accessing the file')
+            return
 
 
         #Variables to validate all features have been read
