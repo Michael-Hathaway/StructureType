@@ -4,8 +4,8 @@
 <h3>Usage</h3>
 <p>To use this package clone this directory onto your machine and adding the following code at the beginning of a script using this package:<br>
 import sys <br>
-sys.path.insert(0, '/path/to/bpRNAStructure') <br>
-import Structure as ST <br>
+sys.path.insert(0, '/path/to/directory_containing_bpRNAStructure') <br>
+from bpRNAStructure.Structure import Structure as ST <br>
 </p>
 
 <p>In the future this package will be available for download using pip </p>
