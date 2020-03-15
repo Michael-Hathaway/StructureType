@@ -19,7 +19,7 @@ from StructureComponents import Stem, Hairpin, Bulge, InternalLoop, ExternalLoop
 ## About the structure object ##
 The Structure object is a python object-oriented representation of the information contained within an RNA Structure Type file.
 The object provides a mechanism to easily access and work with the data in the python programming language. In addition it includes
-functionality for calculating the energy associated with certain RNA secondary structures with the RNA molecule.
+functionality for calculating the energy associated with certain RNA secondary structures within the RNA molecule.
 '''
 class Structure:
     #__init__() method for the Structure object
@@ -37,8 +37,8 @@ class Structure:
         self._structureArray = None
         self._varna = None
 
-        #secondary structure information
         '''
+        secondary structure information
         secondary structure information for each RNA molecule is stored as a dictionary where
         the key is the label for the secondary structure and the value is an object that contains
         the data for the secondary structure with the given label.

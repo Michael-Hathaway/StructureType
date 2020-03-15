@@ -3,7 +3,7 @@ Filename: StructureComponents.py
 Author: Michael Hathaway
 
 Description: The Structure Components module defines individual classes for each of the secondary structures defined in the Structure
-Type file. These classes are: Stem, Bulge, Hairpin, InnerLoop, ExternalLoop, MultiLoop, PseudoKnot, End, and NCBP.
+Type file. These classes are: Stem, Bulge, Hairpin, InternalLoop, ExternalLoop, MultiLoop, PseudoKnot, End, and NCBP.
 '''
 
 ## Module Imports ##
@@ -11,14 +11,14 @@ import numpy as np
 import logging
 
 ## Free Energy Parameter Imports ##
-from LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit #initiation parameters for internal loops, bulges, and hairpins
-from StackingEnergies import StackingEnergies #Watson-Crick stacking interaction parameters
-from InnerLoop_1x1_Energies import InnerLoop_1x1_Energies #Stabilities for 1x1 internal loops
-from InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 internal loops
-from InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
-from InnerLoopMismatches import InnerLoopMismatches_2x3, OtherInnerLoopMismtaches #energy values for 2x3 inner loop mismatches
-from StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
-from SpecialHairpins import SpecialHairpins #special case hairpins with precalculated energies
+from TurnerParameters.parameters.LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit #initiation parameters for internal loops, bulges, and hairpins
+from TurnerParameters.parameters.StackingEnergies import StackingEnergies #Watson-Crick stacking interaction parameters
+from TurnerParameters.parameters.InnerLoop_1x1_Energies import InnerLoop_1x1_Energies #Stabilities for 1x1 internal loops
+from TurnerParameters.parameters.InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 internal loops
+from TurnerParameters.parameters.InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
+from TurnerParameters.parameters.InnerLoopMismatches import InnerLoopMismatches_2x3, OtherInnerLoopMismtaches #energy values for 2x3 inner loop mismatches
+from TurnerParameters.parameters.StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
+from TurnerParameters.parameters.SpecialHairpins import SpecialHairpins #special case hairpins with precalculated energies
 
 ## Free Energy Parameter Constants ##
 R = 0.001987204258 #source: https://en.wikipedia.org/wiki/Gas_constant
@@ -93,6 +93,10 @@ class Stem:
         self._neighbor3p = neighbor3p
         self._adjacentBulges = adjacentBulges
 
+    ###
+    ### Internal Methods
+    ###
+
     #define string representation of object
     def __str__(self):
         return f'Stem: {self._label}'
@@ -110,14 +114,46 @@ class Stem:
     def _setSequenceLen(self):
         self._sequenceLen = (len(self._sequence5p) + len(self._sequence3p)) // 2
 
-    #function returns the label for the stem object. Also allows for user to change label of stems
+    #internal method used during Structure object parsing to track if stem is next to length=1 bulges
+    def _addAdjacentBulgeBoolean(self, bulge5p, bulge3p):
+        self._adjacentBulges = (bulge5p, bulge3p)
+
+    #Internal method that returns tuple containg booleans for whether or not the stem is adjacent to length=1 bulges
+    def _adjacentBulgeBoolean(self):
+        return self._adjacentBulges
+
+    #internal method to set the 5' and 3' neighbors for a stem
+    def _addNeighbors(self, neighbor5p, neighbor3p):
+        self._neighbor5p = neighbor5p
+        self._neighbor3p = neighbor3p
+
+    ###
+    ### User Accesible Methods
+    ###
+
+    '''
+    Function: Stem.label()
+    Description: function returns the label for the stem object. Also allows for user to change label of stems
+    Parameters:
+            (newLabel=None) -- str -- new label that to update the stem._label member variable
+    Return Value:
+            str - label for the Stem object
+    '''
     def label(self, newLabel=None):
         if newLabel :
             self._label = newLabel
         else:
             return self._label
 
-    #function returns the 5' portion of the stem sequence
+
+    '''
+    Function: Stem.sequence5p()
+    Description: function returns the 5' portion of the stem sequence
+    Parameters:
+            (newSequence) -- str -- new RNA sequence to define the 5' sequence of the stem.
+    Return Value:
+            str - The current 5' sequence for the Stem object
+    '''
     def sequence5p(self, newSequence=None):
         if (newSequence):  #if new sequence is provided
             if(len(newSequence) == self._sequenceLen): #check that sequence length matchees other 3' sequences
@@ -128,7 +164,15 @@ class Stem:
         else:
             return self._sequence5p
 
-    #function returns the 3' portion of the stem sequence
+
+    '''
+    Function: Stem.sequence5p()
+    Description: function returns the 3' portion of the stem sequence
+    Parameters:
+            (newSequence) -- str -- new RNA sequence to define the 3' sequence of the stem.
+    Return Value:
+            str - The current 3' sequence for the Stem object
+    '''
     def sequence3p(self, newSequence=None):
         if (newSequence):  #if new sequence is provided
             if(len(newSequence) == self._sequenceLen): #check that sequence length matchees other 5' sequences
@@ -139,7 +183,16 @@ class Stem:
         else:
             return self._sequence3p
 
-    #function returns the stem sequence as a list of tuples containg base pairs. Ex: [('C','G'), ... , ('A', 'U')]
+
+    '''
+    Function: Stem.sequence()
+    Description: function returns the stem sequence as a list of tuples containg base pairs. Ex: [('C','G'), ... , ('A', 'U')]
+    Parameters:
+            (sequence5p=None) -- str -- new RNA sequence to define the 5' sequence of the stem.
+            (sequence3p=None) -- str -- new RNA sequence to define the 3' sequence of the stem.
+    Return Value:
+            list - list of tuples representing the base pair sequence of the stem.
+    '''
     def sequence(self, sequence5p=None, sequence3p=None):
         if(sequence5p and sequence3p):
             if(len(sequence5p) == len(sequence3p)):
@@ -152,44 +205,82 @@ class Stem:
         else:
             return self._sequence
 
-    #function returns the length of the stem
+
+    '''
+    Function: Stem.sequenceLen()
+    Description: Function returns the length of the Stem object
+    Parameters: None
+    Return Value:
+            int - the integer value length of the stem
+    '''
     def sequenceLen(self):
         return self._sequenceLen
 
-    #function returns a tuple containing two tuples that contain start and stop indices for the 5' and 3' sequence of the stem
+
+    '''
+    Function: Stem.span()
+    Description: function returns a tuple containing two tuples that contain start and stop indices for the 5' and 3' sequence of the stem
+    Parameters: None
+    Return Value:
+            ((int, int), (int, int)) - a tuple containing the tuple(int, int) start and stop positions for the 5' and 3' stem sequences
+    '''
     def span(self):
         return (self._sequence5pSpan, self._sequence3pSpan)
 
-    #function returns the start and stop indices of the 5' portion of the stem in a tuple. Ex: (start, stop)
+
+    '''
+    Function: Stem.sequence5pSpan()
+    Description: function returns the start and stop indices of the 5' portion of the stem in a tuple. Ex: (start, stop)
+    Parameters: None
+    Return Value:
+            (int, int) - a tuple containing the integer value start and stop positions of the 5' portion of the stem
+    '''
     def sequence5pSpan(self):
         return self._sequence5pSpan
 
-    #function returns the start and stop indices of the 3' portion of the stem in a tuple. Ex: (start, stop)
+
+    '''
+    Function: Stem.sequence3pSpan()
+    Description: function returns the start and stop indices of the 3' portion of the stem in a tuple. Ex: (start, stop)
+    Parameters: None
+    Return Value:
+            (int, int) - a tuple containing the integer value start and stop positions of the 3' portion of the stem
+    '''
     def sequence3pSpan(self):
         return self._sequence3pSpan
 
-    #function used during Structure object parsing to track if stem is next to length=1 bulges
-    def _addAdjacentBulgeBoolean(self, bulge5p, bulge3p):
-        self._adjacentBulges = (bulge5p, bulge3p)
 
-    #returns tuple containg booleans for whether or not the stem is adjacent to length=1 bulges
-    def _adjacentBulgeBoolean(self):
-        return self._adjacentBulges
-
-    #internal method to set the 5' and 3' neighbors for a stem
-    def _addNeighbors(self, neighbor5p, neighbor3p):
-        self._neighbor5p = neighbor5p
-        self._neighbor3p = neighbor3p
-
-    #Function returns a tuple containing the labels for the 5' and 3' neighbors of the stem
+    '''
+    Function: Stem.neighbors()
+    Description: Function returns a tuple containing the labels for the 5' and 3' neighbors of the stem
+    Parameters: None
+    Return Value:
+            ((str, str), (str, str)) - tuple containging tuples containing the string value labels for the neighbors structures of the 5' and 3' portions of the stem sequennce
+    '''
     def neighbors(self):
         return (self._neighbor5p, self._neighbor3p)
 
-    #Function to check if all base pairs in a stem are canonical base pairings
+
+    '''
+    Function: Stem.cannonical()
+    Description: Function to check if all base pairs in a stem are canonical base pairings
+    Parameters: None
+    Return Value:
+            bool - true or false as to whether or not the stem contains all cannonical base pairings
+    '''
     def canonical(self):
         return (self._sequenceLen > 1 and all(pair in CANONICAL_BASE_PAIRS for pair in self._sequence))
 
-    #function calculates the folding free energy change for the stem
+
+    '''
+    Function: Stem.energy()
+    Description: function calculates the folding free energy change for the stem
+    Parameters:
+            (strict=True) -- bool -- when true, energy values will only be calculated for cannonical stems/stems with all present energy parameters
+            (init=False) -- bool -- when true, the 4.09 Kcal/mol initiation value is inlcuded in energy calculations.
+    Return Value:
+            float - the calculated energy value for the given stem
+    '''
     def energy(self, strict=True, init=False):
         if(self._sequenceLen == 1):
             logging.warning(f'In energy() function for Stem: {self._label}, cannot calculate energy for stem of length 1.')
@@ -206,7 +297,7 @@ class Stem:
         endPenalty = 0
         if (seq[0] == ('A', 'U') or seq[0] == ('U', 'A')) and (self._adjacentBulgeBoolean()[0] == False):
             endPenalty += STEM_AU_END_PENALTY
-        if (seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A')) and (self._adjacentBulgeBoolean()[0] == False):
+        if (seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A')) and (self._adjacentBulgeBoolean()[1] == False):
             endPenalty += STEM_AU_END_PENALTY
 
         #sum up watson crick stacking interactions
@@ -268,6 +359,11 @@ class Hairpin:
         self._pk = pk
         self._neighbors = neighbors
 
+
+    ###
+    ### Internal Methods
+    ###
+
     #define string representation of object
     def __str__(self):
         return f'Hairpin: {self._label}'
@@ -276,14 +372,38 @@ class Hairpin:
     def __len__(self):
         return self._sequenceLen
 
-    #Function returns the label for the hairpin object. also allows user to define new label
+    #Internal function to add hairpin neighbors to the object
+    def _addNeighbors(self, neighbor5p, neighbor3p):
+        self._neighbors = (neighbor5p, neighbor3p)
+
+
+    ###
+    ### User Accessible Methods
+    ###
+
+    '''
+    Function: Hairpin.label()
+    Description: Function returns the label for the hairpin object. also allows user to define new label
+    Parameters:
+            (newLabel=None) -- str -- new label to indentify the hairpin object
+    Return Value:
+            str - the current label for the given hairpin object
+    '''
     def label(self, newLabel=None):
         if newLabel:
             self._label = newLabel
         else:
             return self._label
 
-    #Function returns the sequence that defines the hairpin structure. Also allows user to define new sequence
+
+    '''
+    Function: Hairpin.sequence()
+    Description: Function returns the sequence that defines the hairpin structure. Also allows user to define new sequence
+    Parameters:
+            (newSequence=None) -- str -- new sequence to define the hairpin loop
+    Return Value:
+            str - the current sequence that defines the hairpin loop
+    '''
     def sequence(self, newSequence=None):
         if newSequence:
             self._sequence = newSequence #set new sequence
@@ -291,38 +411,88 @@ class Hairpin:
         else:
             return self._sequence
 
-    #function returns the length of the hairpin
+
+    '''
+    Function: Hairpin.SequenceLen()
+    Description: function returns the length of the hairpin
+    Parameters: None
+    Return Value:
+            int - the length of the hairpin sequence
+    '''
     def sequenceLen(self):
         return self._sequenceLen
 
-    #function returns the start and stop indices of the hairpin as a tuple. Ex: (start, stop)
+
+    '''
+    Function: Hairpin.span()
+    Description: function returns the start and stop indices of the hairpin as a tuple. Ex: (start, stop)
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the integer value start and stop positions of the hairpin loop
+    '''
     def span(self):
         return self._span
 
-    #function returns a tuple that contains the closing pair for the hairpin. Ex: (5' closing base, 3' closing base). Also allows user to define new closing pair
+
+    '''
+    Function: Hairpin.closingPair()
+    Description: function returns a tuple that contains the closing pair for the hairpin. Ex: (5' closing base, 3' closing base). Also allows user to define new closing pair
+    Parameters:
+            (newClose) -- (str, str) -- new closing pair for the Hairpin object
+    Return Value:
+            (str, str) - tuple containing the 5' and 3' closing bases for the Hairpin
+    '''
     def closingPair(self, newClose=None):
         if newClose:
-            self._closingPair = newClose
+            try:
+                if newClose[0] and newClose[1]:
+                    self._closingPair = newClose
+            except:
+                print('Please provide and tuple with the opening and closing base pairs for the hairpin.')
         else:
             return self._closingPair
 
-    #Function returns the index locations of the closing pair bases as a tuple. Ex: (5' closing index, 3' closing index)
+
+    '''
+    Function: Hairpin.closingPairSpan()
+    Description: Function returns the index locations of the closing pair bases as a tuple. Ex: (5' closing index, 3' closing index)
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the integer value locations of the closing base pairs for the Hairpin
+    '''
     def closingPairSpan(self):
         return self._closingPairSpan
 
-    #function returns the pseadoknot label for the hairpin if it exists
+
+    '''
+    Function: Hairpin.hairpinPK()
+    Description: function returns the pseadoknot label for the hairpin if it exists
+    Parameters: None
+    Return Value:
+            (int) - the pseudoknot that the hairpin is a part of if it exist. Will return none if not part of pseudoknot
+    '''
     def hairpinPK(self):
         return self._pk
 
-    #function to add hairpin neighbors to the object
-    def _addNeighbors(self, neighbor5p, neighbor3p):
-        self._neighbors = (neighbor5p, neighbor3p)
 
-    #funtion to get the labels for the StructureComponents adjacent to the hairpin
+    '''
+    Function: Hairpin.neighbors()
+    Description: funtion to get the labels for the StructureComponents adjacent to the hairpin
+    Parameters: None
+    Return Value:
+            (str, str) - tuple containing the labels for the neighboring secondary structures of the 5' and 3' ends of the sequence. Note: for hairpins the neighbors will always be the same.
+    '''
     def neighbors(self):
         return self._neighbors
 
-    #Function to check if the correct parameters are available to calculate the energy of the hairpin
+
+    '''
+    Function: Hairpin.cannonical()
+    Description: Function to check if the correct parameters are available to calculate the energy of the hairpin
+    Parameters: None
+    Return Value:
+            bool - function return True if all necessary energy values are present for the Hairpin
+    '''
     def canonical(self):
         firstMismatch = (self._sequence[0], self._sequence[-1])
         if(self._closingPair not in StackTerminalMismatches) or (firstMismatch not in StackTerminalMismatches[self._closingPair]):
@@ -332,7 +502,15 @@ class Hairpin:
         else:
             return True
 
-    #function to calculate folding free energy of hairpin
+
+    '''
+    Function: Hairpin.energy()
+    Description: function to calculate folding free energy of hairpin
+    Parameters:
+            (strict=True) -- bool -- when True, the function will only calculate the energy of the molecule valid energy parameters are present.
+    Return Value:
+            float - the calculated energy for the hairpin
+    '''
     def energy(self, strict=True):
         #check that hairpin is at least 3 nucleotides long
         if self._sequenceLen < 3:
@@ -409,7 +587,7 @@ self._sequence -- string -- The RNA sequence for the bulge.
 self._sequenceLen -- Int -- The length of the bulge as measured in nucleotides.
 self._span -- (int, int) -- Tuple containing the integer start and stop indices for the RNA sequene that defines the bulge.
 self._closingPair5p -- (string, string) -- Tuple containing 2 single character strings. The first string the the 5' base in 5' closing pair for the bule. The second character is the 3' base in the 5' closing pair.
-self._closingPair5pSpan -- (int, int) -- Tuple containing 2 integers. The first integer is the index of the 5' base in 5' closing pair for the bule. The second integer is the index of the 3' base in the 5' closing pair
+self._closingPair5pSpan -- (int, int) -- Tuple containing 2 integers. The first integer is the index of the 5' base in 5' closing pair for the bulge. The second integer is the index of the 3' base in the 5' closing pair
 self._closingPair3p -- (string, string) -- Tuple containing 2 single character strings. The first string the the 5' base in 3' closing pair for the bule. The second character is the 3' base in the 3' closing pair.
 self._closingPair3pSpan -- (int, int) -- Tuple containing 2 integers. The first integer is the index of the 5' base in 3' closing pair for the bule. The second integer is the index of the 3' base in the 3' closing pair
 self._pk -- int -- the pseudoknot the bulge is a part of, if any(default value is None)
@@ -443,6 +621,9 @@ class Bulge:
         self._neighbor5p = neighbor5p
         self._neighbor3p = neighbor3p
 
+    ###
+    ### Internal Methods
+    ###
 
     #defines string representation for object
     def __str__(self):
@@ -452,14 +633,35 @@ class Bulge:
     def __len__(self):
         return self._sequenceLen
 
-    #Function returns the label for the bulge object. Also allows user to define new label
+    #internal method to set the 5' and 3' neighbors for a bulge
+    def _addNeighbors(self, neighbor5p, neighbor3p):
+        self._neighbor5p = neighbor5p
+        self._neighbor3p = neighbor3p
+
+    ###
+    ### User Accesible Functions
+    ###
+
+    '''
+    Function: Bulge.label()
+    Description: Function returns the label for the bulge object. Also allows user to define new label
+    Parameters:
+    Return Value:
+    '''
     def label(self, newLabel=None):
         if newLabel:
             self._label = newLabel
         else:
             return self._label
 
-    #Function returns the sequence that defines the bulge structure. Also allows user to define new sequence
+    '''
+    Function: Bulge.sequence()
+    Description: Function returns the sequence that defines the bulge structure. Also allows user to define new sequence
+    Parameters:
+            (newSequence=None) -- str -- str nucleotides sequence to define new bulge sequence
+    Return Value:
+            str - the current nucleotide sequence that defines the bulge
+    '''
     def sequence(self, newSequence=None):
         if newSequence:
             self._sequence = newSequence
@@ -467,52 +669,113 @@ class Bulge:
         else:
             return self._sequence
 
-    #Function returns the start and stop indices of the bulge as a tuple. Ex: (start, stop)
+
+    '''
+    Function: Bulge.span()
+    Description: Function returns the start and stop indices of the bulge as a tuple. Ex: (start, stop)
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the start and stop index positions of the bulge loop
+    '''
     def span(self):
         return self._span
 
-    #Function returns the length of the bulge
+
+    '''
+    Function: Bulge.sequenceLen()
+    Description: Function returns the length of the bulge
+    Parameters: None
+    Return Value:
+            int - the integer value length of the bulge
+    '''
     def sequenceLen(self):
         return self._sequenceLen
 
-    #Function returns a tuple containg the 5' closing pair for the bulge. Also allows user to define new closing pair
+
+    '''
+    Function: Bulge.closingPair5p()
+    Description: Function returns a tuple containg the 5' closing pair for the bulge. Also allows user to define new closing pair
+    Parameters:
+            (newClose=None) -- (str, str) -- new 5' closing pair for the bulge object
+    Return Value:
+            (str, str) - a tuple containing the 5' closing base pairs for the bulge object
+    '''
     def closingPair5p(self, newClose=None):
         if newClose:
             self._closingPair5p = newClose
         else:
             return self._closingPair5p
 
-    #Function returns a tuple containg the indices of the 5' closing pair for the bulge
+
+    '''
+    Function: Bulge.closingPair5pSpan()
+    Description: Function returns a tuple containg the indices of the 5' closing pair for the bulge
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the index locations of the 5' closing base pair
+    '''
     def closingPair5pSpan(self):
         return self._closingPair5pSpan
 
-    #Function returns a tuple containg the 3' closing pair for the bulge. Also allows user to define new closing pair
+
+    '''
+    Function: Bulge.closingPair3p(newClose=None)
+    Description: Function returns a tuple containg the 3' closing pair for the bulge. Also allows user to define new closing pair
+    Parameters:
+            (newClose=None) -- (str, str) -- new 3' closing pair for the bulge object
+    Return Value:
+            (str, str) - a tuple containing the 3' closing base pairs for the bulge object
+    '''
     def closingPair3p(self, newClose=None):
         if newClose:
             self._closingPair3p = newClose
         return self._closingPair3p
 
-    #Function returns a tuple containg the indices of the 3' closing pair for the bulge
+
+    '''
+    Function: Bulge.closingPair5pSpan()
+    Description: Function returns a tuple containg the indices of the 5' closing pair for the bulge
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the index locations of the 5' closing base pair
+    '''
     def closingPair3pSpan(self):
         return self._closingPair3pSpan
 
-    #internal method to set the 5' and 3' neighbors for a bulge
-    def _addNeighbors(self, neighbor5p, neighbor3p):
-        self._neighbor5p = neighbor5p
-        self._neighbor3p = neighbor3p
 
-    #function to get the StructureComponents directly adjacent to the bulge
+    '''
+    Function: Bulge.neighbors()
+    Description: function to get the StructureComponents directly adjacent to the bulge
+    Parameters: None
+    Return Value:
+            (str, str) - tuple containg the labels for the 5' and 3' neighbors of the bulge
+    '''
     def neighbors(self):
         return (self._neighbor5p, self._neighbor3p)
 
-    #function to check for valid conditions for calculating bulge energy
+
+    '''
+    Function: Bulge.canonical()
+    Description: function to check for valid conditions for calculating bulge energy
+    Parameters: None
+    Return Value:
+            bool - returns True if all valid energy parameters are present for energy calculation
+    '''
     def canonical(self):
         if self._sequenceLen == 1:
             if (self._closingPair5p not in StackingEnergies) or (self._closingPair3p not in StackingEnergies[self._closingPair5p]):
                 return False
         return True
 
-    #function calculates the folding free energy change for the bulge
+
+    '''
+    Function: Bulge.energy()
+    Description: function calculates the folding free energy change for the bulge
+    Parameters:
+            (strict=True) -- bool -- when true only energy values for bulges with all valid energy parameters will be calaculated
+    Return Value:
+            float - the calculated energy of the Bulge
+    '''
     def energy(self, strict=True):
         if self._sequenceLen == 1: #bulges of length 1
             #get base pair stack
@@ -598,6 +861,10 @@ class InternalLoop:
         self._neighbor3p = neighbor5p
         self._strict = True #used for to control energy function
 
+    ###
+    ### Internal Methods
+    ###
+
     #defines the string representation of the object
     def __str__(self):
         return f'Inner Loop: {self._parentLabel}'
@@ -610,17 +877,47 @@ class InternalLoop:
     def _updateLoopLen(self):
         self._loopsLen = (len(self._5pLoop), len(self._3pLoop))
 
-    #Function returns the parent label for the inner loop. Also allows user to set new label
+    #internal method to set the 5' and 3' neighbors for a InternalLoop
+    def _addNeighbors(self, neighbor5p, neighbor3p):
+        self._neighbor5p = neighbor5p
+        self._neighbor3p = neighbor3p
+
+    #Function checks that the internal loop has the same 5' closing pair structures
+    def _same5pNeighbors(self):
+        return (self._neighbor5p[0] == self._neighbor5p[1])
+
+    #Function checks that the internal loop has the same 3' closing pair structures
+    def _same3pNeighbors(self):
+        return (self._neighbor3p[0] == self._neighbor3p[1])
+
+    ###
+    ### User Accessible Methods
+    ###
+
+
+    '''
+    Function: InternalLoop.label()
+    Description: Function returns the parent label for the inner loop. Also allows user to set new label
+    Parameters:
+            (newLabel=None) -- str -- new label to identify the InternalLoop object
+    Return Value:
+            str - the current label for the InternaLoop object
+    '''
     def label(self, newLabel=None):
         if newLabel:
             self._parentLabel = newLabel
         return self._parentLabel
 
-    #Function returns a tuple containing the labels for the two inner loop subcomponents
-    def subunitLabel(self):
-        return (self._5pLabel, self._3pLabel)
 
-    #Function returns a tuple containing the sequences for the two inner loop subcomponents. Also allows user to define new loop sequences.
+    '''
+    Function: InternalLoop.loops()
+    Description: Function returns a tuple containing the sequences for the two inner loop subcomponents. Also allows user to define new loop sequences.
+    Parameters:
+            (loop5p=None) -- str -- new sequence to define the 5' portion of the internal loop
+            (loop3p=None) -- str -- new sequence to define the 3' portion of the internal loop
+    Return Value:
+            (str, str) - tuple containing the 5' and 3' portions of the internal loop sequence
+    '''
     def loops(self, loop5p=None, loop3p=None):
         if(loop5p and loop3p):
             self._5pLoop = loop5p
@@ -629,7 +926,15 @@ class InternalLoop:
         else:
             return (self._5pLoop, self._3pLoop)
 
-    #Function that returns the 5' portion of the inner loop. Also allows user to define 5p portion of the loop
+
+    '''
+    Function: InternalLoop.loop5p()
+    Description: Function that returns the 5' portion of the inner loop. Also allows user to define 5' portion of the loop
+    Parameters:
+            (loop=None) -- str -- new nucleotide sequence to define the 5' portion of the Internal Loop
+    Return Value:
+            str - the current sequence that defines the 5' portion of the InternalLoop
+    '''
     def loop5p(self, loop=None):
         if(loop):
             self._5pLoop = loop
@@ -637,7 +942,15 @@ class InternalLoop:
         else:
             return self._5pLoop
 
-    #Function that returns the 3' portion of the inner loop. Also allows user to define 5p portion of the loop
+
+    '''
+    Function: InternalLoop.loop3p()
+    Description: Function that returns the 3' portion of the inner loop. Also allows user to define 3' portion of the loop
+    Parameters:
+            (loop=None) -- str -- new nucleotide sequence to define the 3' portion of the Internal Loop
+    Return Value:
+            str - the current sequence that defines the 3' portion of the InternalLoop
+    '''
     def loop3p(self, loop=None):
         if(loop):
             self._3pLoop = loop
@@ -645,40 +958,69 @@ class InternalLoop:
         else:
             return self._3pLoop
 
-    #Function returns a tuple containing the the integer value lengths of the two inner loop components
+
+    '''
+    Function: InternalLoop.loopsLen()
+    Description: Function returns a tuple containing the the integer value lengths of the two inner loop components
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the integer value sequence lengths of the 5' and 3' portions of the Internal Loop
+    '''
     def loopsLen(self):
         return self._loopsLen
 
-    #Function returns a tuple that contains two tuples containing the integer start and stop positions of the 5' and 3' inner loop components
+
+    '''
+    Function: InternalLoop.span()
+    Description: Function returns a tuple that contains two tuples containing the integer start and stop positions of the 5' and 3' inner loop components
+    Parameters: None
+    Return Value:
+            ((int, int), (int, int)) - tuple containing 2 tuples that each define the start and stop indices for the 5' and 3' portions of the Internal Loop
+    '''
     def span(self):
         return (self._span5p, self._span3p)
 
-    #Function returns a tuple that contains two tuples containing the closing base pairs of the inner loop components
+
+    '''
+    Function: InternalLoop.closingPairs()
+    Description: Function returns a tuple that contains two tuples containing the closing base pairs of the inner loop components
+    Parameters: None
+    Return Value:
+            ((str, str), (str, str)) - tuple containg 3 tuples that define the closing nucleotide base pairs for the 5' and 3' end of the Internal Loop
+    '''
     def closingPairs(self):
         return self._closingPairs
 
-    #Function returns a tuple that contains two tuples containing the index locations of the closing base pairs of the inner loop components
+
+    '''
+    Function: InternalLoop.closingPairsSpan()
+    Description: Function returns a tuple that contains two tuples containing the index locations of the closing base pairs of the inner loop components
+    Parameters: None
+    Return Value:
+            ((int, int), (int, int)) - uple containg 3 tuples that define the index locations of the closing nucleotide base pairs for the 5' and 3' end of the Internal Loop
+    '''
     def closingPairsSpan(self):
         return self._closingPairsSpan
 
-    #internal method to set the 5' and 3' neighbors for a InternalLoop
-    def _addNeighbors(self, neighbor5p, neighbor3p):
-        self._neighbor5p = neighbor5p
-        self._neighbor3p = neighbor3p
 
-    #function to get the StructureComponents directly adjacent to the InternalLoop
+    '''
+    Function: InternalLoop.neighbors()
+    Description: function to get the StructureComponents directly adjacent to the InternalLoop
+    Parameters: None
+    Return Value:
+            ((str, str), (str, str)) - tuple containg 2 tuples that define the neighboring structures to the 5' and 3' ends of the Internal Loop
+    '''
     def neighbors(self):
         return (self._neighbor5p, self._neighbor3p)
 
-    #Function checks that the internal loop has the same 5' closing pair structures
-    def same5pNeighbors(self):
-        return (self._neighbor5p[0] == self._neighbor5p[1])
 
-    #Function checks that the internal loop has the same 3' closing pair structures
-    def same3pNeighbors(self):
-        return (self._neighbor3p[0] == self._neighbor3p[1])
-
-    #Function to check if valid parameters are available to calculate inner loop energy
+    '''
+    Function: InternalLoop.canonical()
+    Description: Function to check if valid parameters are available to calculate inner loop energy
+    Parameters: None
+    Return Value:
+            bool - returns True if there is a complete set of parameters for calculating the energy of the internal loop
+    '''
     def canonical(self):
         #Check if energy value is present for 1x1 loop
         if len(self._5pLoop) == 1 and len(self._3pLoop) == 1:
@@ -706,7 +1048,6 @@ class InternalLoop:
             if(self._getInnerLoopMismtachEnergy() != None):
                 return True
             return False
-
 
 
     '''
@@ -991,6 +1332,10 @@ class ExternalLoop:
         self._neighbor5p = neighbor5p
         self._neighbor3p = neighbor3p
 
+    ###
+    ### Internal Methods
+    ###
+
     #Defines the string representation of the external loop
     def __str__(self):
         return f'External Loop: {self._label}'
@@ -998,6 +1343,15 @@ class ExternalLoop:
     #define len function operation for ExternalLoop objects
     def __len__(self):
         return self._sequenceLen
+
+    #internal method to set the 5' and 3' neighbors for a external loop
+    def _addNeighbors(self, neighbor5p, neighbor3p):
+        self._neighbor5p = neighbor5p
+        self._neighbor3p = neighbor3p
+
+    ###
+    ### User Accesible Methods
+    ###
 
     #Function returns the label for the external loop
     def label(self):
@@ -1014,11 +1368,6 @@ class ExternalLoop:
     #Function returns a tuple containing the start and stop index locations for the external loop sequence
     def span(self):
         return self._span
-
-    #internal method to set the 5' and 3' neighbors for a external loop
-    def _addNeighbors(self, neighbor5p, neighbor3p):
-        self._neighbor5p = neighbor5p
-        self._neighbor3p = neighbor3p
 
     #function to get the StructureComponents directly adjacent to the external loop
     def neighbors(self):
@@ -1042,6 +1391,10 @@ class End:
         self._span = span
         self._neighbor=None
 
+    ###
+    ### Internal Methods
+    ###
+
     #define string representation of end object
     def __str__(self):
         return f'End: {self._label}'
@@ -1049,6 +1402,15 @@ class End:
     #define len function operation for End objects
     def __len__(self):
         return self._sequenceLen
+
+    #internal method to set the 5' and 3' neighbors for a end
+    def _addNeighbors(self, neighbor5p, neighbor3p):
+        self._neighbor5p = neighbor5p
+        self._neighbor3p = neighbor3p
+
+    ###
+    ### User Accesible Methods
+    ###
 
     #Function returns the label for the end object
     def label(self):
@@ -1065,11 +1427,6 @@ class End:
     #Function returns a tuple that contains the integer start and stop index locations for the end object
     def span(self):
         return self._span
-
-    #internal method to set the 5' and 3' neighbors for a end
-    def _addNeighbors(self, neighbor5p, neighbor3p):
-        self._neighbor5p = neighbor5p
-        self._neighbor3p = neighbor3p
 
     #function to get the StructureComponents directly adjacent to the end
     def neighbors(self):
@@ -1093,9 +1450,17 @@ class NCBP:
         self._basePairSpan = basePairSpan
         self._parentUnit = loc
 
+    ###
+    ### Internal Methods
+    ###
+
     #Defines the string representation of the NCBP object
     def __str__(self):
         return f'NCBP: {self._label}'
+
+    ###
+    ### User Accesible Methods
+    ###
 
     #Functions returns the label for the NCBP object
     def label(self):
@@ -1138,9 +1503,22 @@ class MultiLoop:
         self._closingPairs = closingPairs
         self._closingPairsSpan = closingPairsSpan
 
+    ###
+    ### Internal Methods
+    ###
+
     #define string representation for MultiLoop object
     def __str__(self):
         return f'MultiLoop: {self._parentLabel}'
+
+    #internal method to set the 5' and 3' neighbors for a multiloop
+    def _addNeighbors(self, neighbor5p, neighbor3p):
+        self._neighbor5p = neighbor5p
+        self._neighbor3p = neighbor3p
+
+    ###
+    ### User Accesible Methods
+    ###
 
     #Function to return the parent Label for the MultiLoop object
     def label(self):
@@ -1197,11 +1575,6 @@ class MultiLoop:
                 return None
         else:
             return self._closingPairsSpan
-
-    #internal method to set the 5' and 3' neighbors for a multiloop
-    def _addNeighbors(self, neighbor5p, neighbor3p):
-        self._neighbor5p = neighbor5p
-        self._neighbor3p = neighbor3p
 
     #function to get the StructureComponents directly adjacent to the multiloop
     def neighbors(self):
