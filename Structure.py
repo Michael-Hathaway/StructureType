@@ -1744,7 +1744,7 @@ class Structure:
     Return Type:
              NCBP object
     '''
-    def getNCBPByLabel(self, ncbpLabel):
+    def _getNCBPByLabel(self, ncbpLabel):
         try:
             ncbp = self._ncbp[ncbpLabel]
             return ncbp

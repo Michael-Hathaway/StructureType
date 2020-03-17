@@ -295,9 +295,9 @@ class Stem:
 
         #check for AU end penalty
         endPenalty = 0
-        if (seq[0] == ('A', 'U') or seq[0] == ('U', 'A')) and (self._adjacentBulgeBoolean()[0] == False):
+        if (seq[0] == ('A', 'U') or seq[0] == ('U', 'A') or seq[0] == ('G', 'U') or seq[0] == ('U', 'G')) and (self._adjacentBulgeBoolean()[0] == False):
             endPenalty += STEM_AU_END_PENALTY
-        if (seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A')) and (self._adjacentBulgeBoolean()[1] == False):
+        if (seq[-1] == ('A', 'U') or seq[-1] == ('U', 'A') or seq[-1] == ('G', 'U') or seq[-1] == ('U', 'G')) and (self._adjacentBulgeBoolean()[1] == False):
             endPenalty += STEM_AU_END_PENALTY
 
         #sum up watson crick stacking interactions
@@ -906,7 +906,8 @@ class InternalLoop:
     def label(self, newLabel=None):
         if newLabel:
             self._parentLabel = newLabel
-        return self._parentLabel
+        else:
+            return self._parentLabel
 
 
     '''
@@ -1189,8 +1190,6 @@ class InternalLoop:
     Return Type: float
     '''
     def _getInnerLoopMismtachEnergy(self):
-        #Check for mismatches for base pairs on either end of the inner loop
-        mismatchEnergy = 0
         #1 x (n-1) Inner Loops
         loopLength = len(self._5pLoop) + len(self._3pLoop)
         if (len(self._5pLoop) == 1 and len(self._3pLoop) == loopLength-1) or (len(self._5pLoop) == loopLength-1 and len(self._3pLoop) == 1):
@@ -1353,23 +1352,63 @@ class ExternalLoop:
     ### User Accesible Methods
     ###
 
-    #Function returns the label for the external loop
-    def label(self):
-        return self._label
 
-    #Function returns the sequence that defines the external loop
+    '''
+    Function: ExternalLoop.label()
+    Description: Function returns the label for the external loop
+    Parameters:
+            (newLabel=None) -- str -- new label to define the ExternalLoop Object
+    Return Value:
+            str - the current label for the ExternalLoop object
+    '''
+    def label(self, newLabel=None):
+        if newLabel:
+            self._label = newLabel
+        else:
+            return self._label
+
+
+    '''
+    Function: ExternalLoop.sequence()
+    Description: Function returns the sequence that defines the external loop
+    Parameters:
+            (newSequence=None) -- str -- new nucleotide sequence to define the ExternalLoop
+    Return Value:
+            str - current sequence that defines the ExternalLoop
+    '''
     def sequence(self):
         return self._sequence
 
-    #function returns the length of the external loop sequence
+
+    '''
+    Function: ExternalLoop.sequenceLen()
+    Description: function returns the length of the external loop sequence
+    Parameters: None
+    Return Value:
+            int - the integer value length of the ExternalLoop sequence
+    '''
     def sequenceLen(self):
         return self._sequenceLen
 
-    #Function returns a tuple containing the start and stop index locations for the external loop sequence
+
+    '''
+    Function: ExternalLoop.span()
+    Description: Function returns a tuple containing the start and stop index locations for the external loop sequence
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the start and stop index locations of the ExternalLoop
+    '''
     def span(self):
         return self._span
 
-    #function to get the StructureComponents directly adjacent to the external loop
+
+    '''
+    Function: ExternalLoop.neighbors()
+    Description: function to get the StructureComponents directly adjacent to the external loop
+    Parameters: None
+    Return Value:
+            (str, str) - tuple containing the labels for the 5' and 3' neighbors of the ExternalLoop
+    '''
     def neighbors(self):
         return (self._neighbor5p, self._neighbor3p)
 
@@ -1412,23 +1451,66 @@ class End:
     ### User Accesible Methods
     ###
 
-    #Function returns the label for the end object
-    def label(self):
-        return self._label
 
-    #Function returns the sequence that defines the end object
-    def sequence(self):
-        return self._sequence
+    '''
+    Function: End.label()
+    Description: Function returns the label for the end object
+    Parameters: 
+            (newLabel=None) -- str -- new label to define the End object
+    Return Value:
+            str - the current label for the End object
+    '''
+    def label(self, newLabel=None):
+        if newLabel:
+            self._label = newLabel
+        else:
+            return self._label
 
-    #function returns the length of the End sequence
+    
+    '''
+    Function: End.sequence()
+    Description: Function returns the sequence that defines the end object
+    Parameters:
+            (newSequence=None) -- str -- new nucleotide sequence to define the End object
+    Return Value:
+            str - the current sequence that defines the End object
+    '''
+    def sequence(self, newSequence=None):
+        if newSequence:
+            self._sequence = newSequence
+        else:
+            return self._sequence
+
+    
+    '''
+    Function: End.sequenceLen()
+    Description: function returns the length of the End sequence
+    Parameters: None
+    Return Value:
+            int - the integer value length of the End object
+    '''
     def sequenceLen(self):
         return self._sequenceLen
 
-    #Function returns a tuple that contains the integer start and stop index locations for the end object
+    
+    '''
+    Function: End.span()
+    Description: Function returns a tuple that contains the integer start and stop index locations for the end object
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the integer value start and stop indices of the End object
+    '''
     def span(self):
         return self._span
 
-    #function to get the StructureComponents directly adjacent to the end
+    
+    '''
+    Function: End.neighbors()
+    Description: function to get the StructureComponents directly adjacent to the end
+    Parameters: None
+    Return Value:
+            (str, str) - tuple containing the labels for the StructureComponents neighboring the End in the Structure object
+    '''
     def neighbors(self):
         return (self._neighbor5p, self._neighbor3p)
 
@@ -1462,19 +1544,55 @@ class NCBP:
     ### User Accesible Methods
     ###
 
-    #Functions returns the label for the NCBP object
-    def label(self):
-        return self._label
+    
+    '''
+    Function: NCBP.label()
+    Description: Functions returns the label for the NCBP object
+    Parameters: 
+            (newLabel=None) -- str -- new label to identify the NCBP object
+    Return Value:
+            str - the current label for the NCBP object
+    '''
+    def label(self, newLabel=None):
+        if newLabel:
+            self._label = newLabel
+        else:
+            return self._label
 
-    #Function returns a tuple containing the two base pairs that define the NCBP object
-    def sequence(self):
-        return self._basePair
+    
+    '''
+    Function: NCBP.pair()
+    Description: Function returns a tuple containing the two base pairs that define the NCBP object
+    Parameters:
+            (newPair=None) -- (str, str) -- new tuple to define the NCBP
+    Return Value:
+            (str, str) - the current base pair that defines the NCBP
+    '''
+    def pair(self, newPair=None):
+        if newPair:
+            self._basePair = newPair
+        else:
+            return self._basePair
 
-    #Function returns a tuple containing the integer locations of the base pairs that define the NCBP
-    def Span(self):
+    
+    '''
+    Function: NCBP.span()
+    Description: Function returns a tuple containing the integer locations of the base pairs that define the NCBP
+    Parameters: None
+    Return Value:
+            (int, int) - tuple containing the index locations of the NCBP
+    '''
+    def span(self):
         return self._basePairSpan
 
-    #Function returns a string the identifies the secondary structure that the NCBP occurs in
+    
+    '''
+    Function: NCBP.parentUnit()
+    Description: Function returns a string the identifies the secondary structure that the NCBP occurs in
+    Parameters: None
+    Return Value:
+            str - label for the StructureComponent that contains the NCBP
+    '''
     def parentUnit(self):
         return self._parentUnit
 
@@ -1520,19 +1638,53 @@ class MultiLoop:
     ### User Accesible Methods
     ###
 
-    #Function to return the parent Label for the MultiLoop object
-    def label(self):
-        return self._parentLabel
+    
+    '''
+    Function: MultiLoop.label()
+    Description: Function to return the parent Label for the MultiLoop object
+    Parameters:
+            (newLabel=None) -- str -- new label to identify the Multiloop object
+    Return Value:
+            str - the label for the current MultlLoop object
+    '''
+    def label(self, newLabel=None):
+        if newLabel:
+            self._parentLabel = newLabel
+        else:
+            return self._parentLabel
 
-    #Function to return a list of the MultiLoop object subcomponents
+    
+    '''
+    Function: MultiLoop.subunitLabels()
+    Description: Function to return a list of the MultiLoop object subcomponents
+    Parameters: None
+    Return Value:
+            list - list of the subunit labels for the MultiLoop object
+    '''
     def subunitLabels(self):
         return self._subunitLabels
 
-    #Function to return the number of subcomponents composing the MultiLoop
+    
+    '''
+    Function: MultiLoop.numSubunits()
+    Description: Function to return the number of subcomponents composing the MultiLoop
+    Parameters: None
+    Return Value:
+            int - the number of subunits that compose the MultiLoop Structure
+    '''
     def numSubunits(self):
         return self._numSubunits
 
-    #Function to return dictionary of subunitLabel : Sequence pairs for the MultiLoop object
+    
+    '''
+    Function: MultiLoop.sequence()
+    Description: Function to return dictionary of subunitLabel : Sequence pairs for the MultiLoop object
+    Parameters:
+            (subunit=None) -- str -- label for the specific subunit being accessed.
+    Return Value:
+            dict - dictionary of multiloop sequences mapped to their subunit label
+            * if a specific subunit label is provided, only that sequence will bw returned
+    '''
     def sequence(self, subunit=None):
         if(subunit):
             try:
@@ -1543,7 +1695,16 @@ class MultiLoop:
         else:
             return self._sequences
 
-    #Function to return dictionary of subunitLabel : SequenceSpans pairs for the MultiLoop object
+    
+    '''
+    Function: MultiLoop.span()
+    Description: Function to return dictionary of subunitLabel : SequenceSpans pairs for the MultiLoop object
+    Parameters:
+            (subunit=None) -- str -- label for specific subunit being accessed
+    Return Value:
+            dict - dictionary of tuples defining start and stop indicies for multiloop subunits mapped to their subunit label
+            * if a specific subunit label is provided, only that tuple will be returned
+    '''
     def span(self, subunit=None):
         if(subunit):
             try:
@@ -1554,7 +1715,16 @@ class MultiLoop:
         else:
             return self._spans
 
-    #Function to return dictionary of subunitLabel : closingPairs for the MultiLoop object
+    
+    '''
+    Function: MultiLoop.closingPairs()
+    Description: Function to return dictionary of subunitLabel : closingPairs for the MultiLoop object
+    Parameters:
+            (subunit=None) -- str -- label for specific subunit being accessed
+    Return Value:
+            dict - dictionary of tuples defining closing base pairs for multiloop subunits mapped to their subunit label
+            * if a specific subunit label is provided, only that tuple will be returned
+    '''
     def closingPairs(self, subunit=None):
         if(subunit):
             try:
@@ -1565,21 +1735,25 @@ class MultiLoop:
         else:
             return self._closingPairs
 
-    #Function to return dictionary of subunitLabel : closingPairsSpan for the MultiLoop object
+    
+    '''
+    Function: MultiLoop.closingPairsSpan()
+    Description: Function to return dictionary of subunitLabel : closingPairsSpan for the MultiLoop object
+    Parameters:
+            (subunit=None) -- str -- label for specific subunit being accessed
+    Return Value:
+            dict - dictionary of tuples defining closing base pair index locations for multiloop subunits mapped to their subunit label
+            * if a specific subunit label is provided, only that tuple will be returned
+    '''
     def closingPairsSpan(self, subunit=None):
         if(subunit):
             try:
-                closingPairSpan = self._closingPairsSpan[subunit]
+                closingPairsSpan = self._closingPairsSpan[subunit]
                 return closingPairsSpan
             except KeyError:
                 return None
         else:
             return self._closingPairsSpan
-
-    #function to get the StructureComponents directly adjacent to the multiloop
-    def neighbors(self):
-        return (self._neighbor5p, self._neighbor3p)
-
 
 
 
