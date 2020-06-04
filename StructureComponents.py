@@ -11,14 +11,14 @@ import numpy as np
 import logging
 
 ## Free Energy Parameter Imports ##
-from .TurnerParameters.parameters.LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit #initiation parameters for internal loops, bulges, and hairpins
-from .TurnerParameters.parameters.StackingEnergies import StackingEnergies #Watson-Crick stacking interaction parameters
-from .TurnerParameters.parameters.InnerLoop_1x1_Energies import InnerLoop_1x1_Energies #Stabilities for 1x1 internal loops
-from .TurnerParameters.parameters.InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 internal loops
-from .TurnerParameters.parameters.InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
-from .TurnerParameters.parameters.InnerLoopMismatches import InnerLoopMismatches_2x3, OtherInnerLoopMismtaches #energy values for 2x3 inner loop mismatches
-from .TurnerParameters.parameters.StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
-from .TurnerParameters.parameters.SpecialHairpins import SpecialHairpins #special case hairpins with precalculated energies
+from parameters.LoopInitiationEnergy import InternalLoopInit, BulgeInit, HairpinInit #initiation parameters for internal loops, bulges, and hairpins
+from parameters.StackingEnergies import StackingEnergies #Watson-Crick stacking interaction parameters
+from parameters.InnerLoop_1x1_Energies import InnerLoop_1x1_Energies #Stabilities for 1x1 internal loops
+from parameters.InnerLoop_1x2_Energies import InnerLoop_1x2_Energies #Stabilities for 1x2 internal loops
+from parameters.InnerLoop_2x2_Energies import InnerLoop_2x2_Energies #Stabilities for 2x2 internal loops
+from parameters.InnerLoopMismatches import InnerLoopMismatches_2x3, OtherInnerLoopMismtaches #energy values for 2x3 inner loop mismatches
+from parameters.StackTerminalMismatches import StackTerminalMismatches #stacking terminal mismatches for Hairpin calculations
+from parameters.SpecialHairpins import SpecialHairpins #special case hairpins with precalculated energies
 
 ## Free Energy Parameter Constants ##
 R = 0.001987204258 #source: https://en.wikipedia.org/wiki/Gas_constant

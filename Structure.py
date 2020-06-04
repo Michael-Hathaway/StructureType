@@ -13,7 +13,7 @@ import sys
 import re
 
 ## Structure Type Component Imports ##
-from .StructureComponents import Stem, Hairpin, Bulge, InternalLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
+from StructureComponents import Stem, Hairpin, Bulge, InternalLoop, ExternalLoop, MultiLoop, PseudoKnot, End, NCBP
 
 '''
 ## About the structure object ##
